@@ -1,0 +1,14 @@
+{
+  "name": "saraha",
+  "description": "A clone of SarahaApp made in Express NodeJS",
+  "version": "1.0.0",
+  "main": "src/main,js",
+  "repository": "https://github.com/KallMeMoh/Saraha",
+  "author": "Mohammad",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "node --watch src/main.js"
+  },
+  "dependencies": {}
+}
