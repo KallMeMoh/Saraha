@@ -1,0 +1,9 @@
+export const GenderEnum = {
+  Male: 0,
+  Female: 1,
+};
+
+export const RoleEnum = {
+  Admin: 0,
+  User: 1,
+};

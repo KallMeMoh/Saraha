@@ -1,6 +1,14 @@
 import express from 'express';
 import { PORT } from '../config/config.service.js';
 import { connectDB } from './DB/connection.js';
+import {
+  globalErrorHandling,
+  notFoundException,
+} from './common/response/response.js';
+import { authRouter } from './Modules/Auth/auth.controller.js';
+import { userRouter } from './Modules/User/user.controller.js';
+import { messageRouter } from './Modules/Message/message.controller.js';
+import { authMiddleware } from './middlewares/authentication.js';
 
 export default async function bootstrap() {
   const app = express();
@@ -9,16 +17,15 @@ export default async function bootstrap() {
 
   app.use(express.json());
 
+  app.use('/auth', authRouter);
+  app.use('/user', userRouter);
+  app.use('/messages', authMiddleware, messageRouter);
+
   app.use('{/*dummy}', (req, res) => {
-    return res.status(404).json({ message: 'Endpoint not found' });
+    return notFoundException('Endpoint not found');
   });
 
-  app.use((err, req, res, next) => {
-    console.log(err);
-    return res.status(500).json({
-      message: 'Internal server error',
-    });
-  });
+  app.use(globalErrorHandling);
 
   app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
