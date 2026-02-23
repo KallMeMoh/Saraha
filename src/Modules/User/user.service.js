@@ -1,8 +1,8 @@
-import { notFoundException } from '../../common/response/response';
-import { decrypt } from '../../common/utils/security/decrypt';
-import DBRepo from '../../DB/db.repository';
-import { MessageModel } from '../../DB/Models/Message.model';
-import { UserModel } from '../../DB/Models/User.model';
+import { notFoundException } from '../../common/response/response.js';
+import { decrypt } from '../../common/utils/security/decrypt.js';
+import DBRepo from '../../DB/db.repository.js';
+import { MessageModel } from '../../DB/Models/Message.model.js';
+import { UserModel } from '../../DB/Models/User.model.js';
 
 export const getUserProfile = async (userId) => {
   const user = await DBRepo.findOne({

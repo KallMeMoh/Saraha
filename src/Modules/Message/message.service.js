@@ -1,10 +1,10 @@
 import {
   notFoundException,
   unauthorizedException,
-} from '../../common/response/response';
-import DBRepo from '../../DB/db.repository';
-import { MessageModel } from '../../DB/Models/Message.model';
-import { UserModel } from '../../DB/Models/User.model';
+} from '../../common/response/response.js';
+import DBRepo from '../../DB/db.repository.js';
+import { MessageModel } from '../../DB/Models/Message.model.js';
+import { UserModel } from '../../DB/Models/User.model.js';
 
 export const getUserMessages = async (userId) => {
   const { _id } = await DBRepo.exists({
