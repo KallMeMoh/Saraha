@@ -10,8 +10,8 @@ export const messageRouter = Router();
 // I don't like this also >:(
 
 messageRouter.get('/', async (req, res) => {
-  const user = await MessageService.getUserMessages(req.userId);
-  return successResponse({ res, statusCode: 200, data: user });
+  const messages = await MessageService.getUserMessages(req.userId);
+  return successResponse({ res, statusCode: 200, data: { messages } });
 });
 
 messageRouter.delete('/:messageId', async (req, res) => {
@@ -20,8 +20,7 @@ messageRouter.delete('/:messageId', async (req, res) => {
     req.params.messageId,
   );
 
-  if (deleted > 0)
-    return successResponse({ res, statusCode: 200, data: message });
+  if (deleted > 0) return successResponse({ res, statusCode: 200 });
 
   return notFoundException('Failed to delete message');
 });

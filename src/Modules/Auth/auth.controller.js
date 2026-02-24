@@ -8,10 +8,10 @@ export const authRouter = Router();
 
 authRouter.post('/signup', async (req, res) => {
   const data = await AuthService.signup(req.body);
-  return successResponse({ res, statusCode: 201, data });
+  return successResponse({ res, statusCode: 201 });
 });
 
 authRouter.post('/login', async (req, res) => {
-  const data = await AuthService.login(req.body);
-  return successResponse({ res, statusCode: 200, data });
+  const token = await AuthService.login(req.body);
+  return successResponse({ res, statusCode: 200, data: { token } });
 });

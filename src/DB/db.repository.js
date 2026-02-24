@@ -12,14 +12,14 @@ const findOne = async ({
   return await query;
 };
 
-const findMany = async ({
+const find = async ({
   Model,
   filters = {},
   select = '',
   populate = false,
   populateField = '',
 }) => {
-  let query = Model.findMany(filters).select(select);
+  let query = Model.find(filters).select(select);
   if (populate) query = query.populate(populateField);
   return await query;
 };
@@ -40,7 +40,7 @@ const deleteOne = async ({ Model, filters = {} }) => {
 
 export default {
   findOne,
-  findMany,
+  find,
   create,
   exists,
   deleteOne,

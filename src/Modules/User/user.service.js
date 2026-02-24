@@ -1,8 +1,10 @@
+import jwt from 'jsonwebtoken';
 import { notFoundException } from '../../common/response/response.js';
 import { decrypt } from '../../common/utils/security/decrypt.js';
 import DBRepo from '../../DB/db.repository.js';
 import { MessageModel } from '../../DB/Models/Message.model.js';
 import { UserModel } from '../../DB/Models/User.model.js';
+import { JWT_SECRET } from '../../../config/config.service.js';
 
 export const getUserProfile = async (userId) => {
   const user = await DBRepo.findOne({
@@ -18,11 +20,11 @@ export const getUserProfile = async (userId) => {
 };
 
 export const createMessage = async (req, bodyData = {}) => {
-  const { _id = null } = await DBRepo.exists({
+  const recipient = await DBRepo.exists({
     Model: UserModel,
     filters: { _id: req.params.userId },
   });
-  if (!_id) notFoundException("Recipient doesn't exist");
+  if (!recipient?._id) notFoundException("Recipient doesn't exist");
 
   let senderId = null;
   const authHeader = req.headers?.authorization;
@@ -38,7 +40,7 @@ export const createMessage = async (req, bodyData = {}) => {
     Model: MessageModel,
     data: {
       senderId,
-      receiverId: _id,
+      receiverId: recipient._id,
       content: bodyData.content,
     },
   });

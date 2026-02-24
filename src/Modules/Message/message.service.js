@@ -14,7 +14,7 @@ export const getUserMessages = async (userId) => {
   if (!_id) return notFoundException('Account does not exist');
 
   const messages =
-    (await DBRepo.findMany({
+    (await DBRepo.find({
       Model: MessageModel,
       filters: { senderId: _id },
     })) || [];
@@ -33,7 +33,9 @@ export const deleteMessage = async (userId, messageId) => {
   // middleware already prevents unauthorized access and
   // if logged in isn't the sender or message sender was anonymous
   // then can't delete message
-  if (message.senderId !== userId || message.senderId)
+  console.log(message.senderId.equals(userId));
+
+  if (!message.senderId.equals(userId) || !message.senderId)
     return unauthorizedException('You are not the author of this message');
 
   const { deletedCount } = await message.deleteOne();

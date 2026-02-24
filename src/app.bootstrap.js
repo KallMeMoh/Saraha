@@ -7,8 +7,8 @@ import {
 } from './common/response/response.js';
 import { authRouter } from './Modules/Auth/auth.controller.js';
 import { userRouter } from './Modules/User/user.controller.js';
-import { messageRouter } from './Modules/Message/message.controller.js';
 import { authMiddleware } from './middlewares/authentication.js';
+import { messageRouter } from './Modules/Message/message.controller.js';
 
 export default async function bootstrap() {
   const app = express();
@@ -18,7 +18,7 @@ export default async function bootstrap() {
   app.use(express.json());
 
   app.use('/auth', authRouter);
-  app.use('/user', userRouter);
+  app.use('/users', userRouter);
   app.use('/messages', authMiddleware, messageRouter);
 
   app.use('{/*dummy}', (req, res) => {

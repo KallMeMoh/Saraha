@@ -9,10 +9,10 @@ export const userRouter = Router();
 
 userRouter.get('/', authMiddleware, async (req, res) => {
   const user = await UserService.getUserProfile(req.userId);
-  return successResponse({ res, statusCode: 200, data: user });
+  return successResponse({ res, statusCode: 200, data: { user } });
 });
 
 userRouter.post('/:userId/messages', async (req, res) => {
   const message = await UserService.createMessage(req, req.body);
-  return successResponse({ res, statusCode: 200, data: message });
+  return successResponse({ res, statusCode: 200, data: { message } });
 });
