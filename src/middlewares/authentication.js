@@ -7,20 +7,26 @@ import { TokenType } from '../common/enums/token.enum.js';
 import { getSignature } from '../common/utils/security/signature.js';
 
 export const authentication =
-  (tokenType = TokenType.Access) =>
+  (
+    { tokenType = TokenType.Access, strict = true } = {
+      tokenType: TokenType.Access,
+      strict: true,
+    },
+  ) =>
   (req, res, next) => {
     const authHeader = req.headers?.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return badRequestException('Invalid bearer key');
+      if (strict) return badRequestException('Invalid bearer key');
+      return next();
     }
 
     const token = authHeader.split(' ')[1];
+    const { aud } = jwt.decode(token);
+    const [role, type] = aud;
+
     let verified;
     try {
-      const { aud } = jwt.decode(token);
-      const [role, type] = aud;
-
       if (type !== tokenType)
         return unauthorizedException('Invalid or malformed token');
 
@@ -28,7 +34,8 @@ export const authentication =
 
       verified = jwt.verify(token, signature);
     } catch (err) {
-      return unauthorizedException('Invalid or malformed token');
+      if (strict) return unauthorizedException('Invalid or malformed token');
+      return next();
     }
 
     // I am definitely  not making a db query here

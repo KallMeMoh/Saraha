@@ -20,9 +20,9 @@ authRouter.post('/login', async (req, res) => {
 
 authRouter.post(
   '/refresh',
-  authentication(TokenType.Refresh),
+  authentication({ tokenType: TokenType.Refresh }),
   async (req, res) => {
-    const data = await AuthService.rotateToken(req.userId, req.role);
+    const data = await AuthService.rotateToken(req.userId, req.userRole);
     return successResponse({ res, statusCode: 200, data });
   },
 );

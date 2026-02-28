@@ -16,17 +16,20 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    phone: String,
+    phone: String, // is this supposed to be unique? never used Saraha before
     birth_date: Date,
     gender: {
       type: Number,
       enum: Object.values(GenderEnum),
       required: true,
+      get: (val) =>
+        Object.keys(GenderEnum).find((key) => GenderEnum[key] === val),
     },
     role: {
       type: Number,
       enum: Object.values(RoleEnum),
       default: RoleEnum.User,
+      get: (val) => Object.keys(RoleEnum).find((key) => RoleEnum[key] === val),
     },
     verified: {
       type: Boolean,

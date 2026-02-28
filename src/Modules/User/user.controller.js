@@ -12,7 +12,15 @@ userRouter.get('/', authentication(), async (req, res) => {
   return successResponse({ res, statusCode: 200, data: { user } });
 });
 
-userRouter.post('/:userId/messages', async (req, res) => {
-  const message = await UserService.createMessage(req, req.body);
-  return successResponse({ res, statusCode: 200, data: { message } });
-});
+userRouter.post(
+  '/:receiverId/messages',
+  authentication({ strict: false }),
+  async (req, res) => {
+    const message = await UserService.createMessage(
+      req.userId,
+      req.params.receiverId,
+      req.body.content,
+    );
+    return successResponse({ res, statusCode: 200, data: { message } });
+  },
+);
