@@ -17,4 +17,8 @@ export const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS) || 10;
 export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 export const ENCRYPTION_ALGO = process.env.ENCRYPTION_ALGO;
 
-export const JWT_SECRET = process.env.JWT_SECRET;
+export const USER_ACCESS_SIGNATURE = process.env.USER_ACCESS_SECRET;
+export const USER_REFRESH_SIGNATURE = process.env.USER_REFRESH_SECRET;
+
+export const ADMIN_ACCESS_SIGNATURE = process.env.ADMIN_ACCESS_SECRET;
+export const ADMIN_REFRESH_SIGNATURE = process.env.ADMIN_REFRESH_SECRET;

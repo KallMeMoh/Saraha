@@ -7,7 +7,7 @@ import {
 } from './common/response/response.js';
 import { authRouter } from './Modules/Auth/auth.controller.js';
 import { userRouter } from './Modules/User/user.controller.js';
-import { authMiddleware } from './middlewares/authentication.js';
+import { authentication } from './middlewares/authentication.js';
 import { messageRouter } from './Modules/Message/message.controller.js';
 
 export default async function bootstrap() {
@@ -19,7 +19,7 @@ export default async function bootstrap() {
 
   app.use('/auth', authRouter);
   app.use('/users', userRouter);
-  app.use('/messages', authMiddleware, messageRouter);
+  app.use('/messages', authentication(), messageRouter);
 
   app.use('{/*dummy}', (req, res) => {
     return notFoundException('Endpoint not found');

@@ -1,8 +1,7 @@
 import { compare, hash } from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { randomUUID } from 'crypto';
 import { UserModel } from '../../DB/Models/User.model.js';
-import { JWT_SECRET, SALT_ROUNDS } from '../../../config/config.service.js';
+import { SALT_ROUNDS } from '../../../config/config.service.js';
 import {
   conflictException,
   notFoundException,
@@ -10,6 +9,8 @@ import {
 } from '../../common/response/response.js';
 import DBRepo from '../../DB/db.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
+import { TokenType } from '../../common/enums/token.enum.js';
+import { getSignature } from '../../common/utils/security/signature.js';
 
 export const signup = async (bodyData) => {
   const { email } = bodyData;
@@ -51,11 +52,28 @@ export const login = async (bodyData) => {
 
   if (!matchedPassword) return unauthorizedException('Invalid credentials');
 
-  const token = jwt.sign({ role: existingUser.role }, JWT_SECRET, {
-    subject: existingUser._id.toString(),
-    expiresIn: '1h',
-    jwtid: randomUUID(), // for blacklisting tokens in the future
+  const { accessSignature, refreshSignature } = getSignature(role);
+
+  // I hate this...
+  const accessToken = jwt.sign({ sub: existingUser._id }, accessSignature, {
+    audience: [existingUser.role, TokenType.Access],
+    expiresIn: '15m',
   });
 
-  return token;
+  const refreshToken = jwt.sign({ sub: existingUser._id }, refreshSignature, {
+    audience: [existingUser.role, TokenType.Refresh],
+    expiresIn: '1y',
+  });
+
+  return { accessToken, refreshToken };
+};
+
+export const rotateToken = async (userId, userRole) => {
+  const { accessSignature } = getSignature(userRole);
+  const newAccessToken = jwt.sign({ sub: userId }, accessSignature, {
+    audience: [userRole, TokenType.Access],
+    expiresIn: '15m',
+  });
+
+  return { accessToken: newAccessToken };
 };

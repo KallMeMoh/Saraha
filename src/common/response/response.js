@@ -23,6 +23,10 @@ export const unauthorizedException = (msg) => {
   throw new Error(msg, { cause: { statusCode: 401 } });
 };
 
+export const forbiddenException = (msg) => {
+  throw new Error(msg, { cause: { statusCode: 403 } });
+};
+
 export const notFoundException = (msg) => {
   throw new Error(msg, { cause: { statusCode: 404 } });
 };

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import * as AuthService from './auth.service.js';
 import { successResponse } from '../../common/response/response.js';
+import { authentication } from '../../middlewares/authentication.js';
+import { TokenType } from '../../common/enums/token.enum.js';
 
 export const authRouter = Router();
 
@@ -12,6 +14,15 @@ authRouter.post('/signup', async (req, res) => {
 });
 
 authRouter.post('/login', async (req, res) => {
-  const token = await AuthService.login(req.body);
-  return successResponse({ res, statusCode: 200, data: { token } });
+  const data = await AuthService.login(req.body);
+  return successResponse({ res, statusCode: 200, data });
 });
+
+authRouter.post(
+  '/refresh',
+  authentication(TokenType.Refresh),
+  async (req, res) => {
+    const data = await AuthService.rotateToken(req.userId, req.role);
+    return successResponse({ res, statusCode: 200, data });
+  },
+);
