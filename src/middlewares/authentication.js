@@ -6,12 +6,17 @@ import {
 import { TokenType } from '../common/enums/token.enum.js';
 import { getSignature } from '../common/utils/security/signature.js';
 
-export const authentication =
+export const authenticate =
   (strict = true, tokenType = TokenType.Access) =>
   (req, res, next) => {
     const authHeader = req.headers?.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader) {
+      if (strict) return badRequestException('Missing token');
+      return next();
+    }
+
+    if (!authHeader.startsWith('Bearer ')) {
       if (strict) return badRequestException('Invalid bearer key');
       return next();
     }
@@ -22,8 +27,10 @@ export const authentication =
 
     let verified;
     try {
-      if (type !== tokenType)
-        return unauthorizedException('Invalid or malformed token');
+      if (type !== tokenType) {
+        if (strict) return unauthorizedException('Invalid or malformed token');
+        return next();
+      }
 
       const signature = getSignature(role)[`${tokenType}Signature`];
 

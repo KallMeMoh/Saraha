@@ -1,11 +1,11 @@
 import { RoleEnum } from '../common/enums/user.enum.js';
 import { forbiddenException } from '../common/response/response.js';
 
-export const authorizate =
+export const authorize =
   (authorizedRoles = RoleEnum.User) =>
   (req, res, next) => {
     const matchedRole =
-      typeof authorizedRoles === 'string'
+      typeof authorizedRoles !== 'object'
         ? authorizedRoles === req.userRole
         : authorizedRoles.includes(req.userRole) || false;
 
