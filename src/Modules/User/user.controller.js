@@ -14,7 +14,7 @@ userRouter.get('/', authentication(), async (req, res) => {
 
 userRouter.post(
   '/:receiverId/messages',
-  authentication({ strict: false }),
+  authentication(false),
   async (req, res) => {
     const message = await UserService.createMessage(
       req.userId,

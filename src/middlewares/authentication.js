@@ -7,12 +7,7 @@ import { TokenType } from '../common/enums/token.enum.js';
 import { getSignature } from '../common/utils/security/signature.js';
 
 export const authentication =
-  (
-    { tokenType = TokenType.Access, strict = true } = {
-      tokenType: TokenType.Access,
-      strict: true,
-    },
-  ) =>
+  (strict = true, tokenType = TokenType.Access) =>
   (req, res, next) => {
     const authHeader = req.headers?.authorization;
 
@@ -38,7 +33,7 @@ export const authentication =
       return next();
     }
 
-    // I am definitely  not making a db query here
+    // I am definitely not making a db query here
     req.userId = verified.sub;
     req.userRole = role;
     next();
