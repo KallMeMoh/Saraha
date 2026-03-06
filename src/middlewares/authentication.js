@@ -9,6 +9,8 @@ import { getSignature } from '../common/utils/security/signature.js';
 export const authenticate =
   (strict = true, tokenType = TokenType.Access) =>
   (req, res, next) => {
+    console.log(strict);
+
     const authHeader = req.headers?.authorization;
 
     if (!authHeader) {

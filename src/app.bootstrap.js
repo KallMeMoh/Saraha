@@ -18,8 +18,8 @@ export default async function bootstrap() {
   app.use(express.json());
 
   app.use('/auth', authRouter);
-  app.use('/users', userRouter);
-  app.use('/messages', authenticate(), messageRouter);
+  app.use('/users', authenticate(), userRouter);
+  app.use('/messages', messageRouter);
 
   app.use('{/*dummy}', (req, res) => {
     return notFoundException('Endpoint not found');

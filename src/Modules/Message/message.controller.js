@@ -11,7 +11,7 @@ export const messageRouter = Router();
 
 // I don't like this also >:(
 
-messageRouter.get('/', async (req, res) => {
+messageRouter.get('/', authenticate(), async (req, res) => {
   const messages = await MessageService.getUserMessages(req.userId);
   return successResponse({ res, statusCode: 200, data: { messages } });
 });
@@ -31,7 +31,7 @@ messageRouter.post(
   },
 );
 
-messageRouter.delete('/:messageId', async (req, res) => {
+messageRouter.delete('/:messageId', authenticate(), async (req, res) => {
   const deleted = await MessageService.deleteMessage(
     req.userId,
     req.params.messageId,
