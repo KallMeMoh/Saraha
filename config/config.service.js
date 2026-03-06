@@ -22,3 +22,6 @@ export const USER_REFRESH_SIGNATURE = process.env.USER_REFRESH_SECRET;
 
 export const ADMIN_ACCESS_SIGNATURE = process.env.ADMIN_ACCESS_SECRET;
 export const ADMIN_REFRESH_SIGNATURE = process.env.ADMIN_REFRESH_SECRET;
+
+export const SMTP_USER = process.env.SMTP_USER;
+export const SMTP_PASS = process.env.SMTP_PASS;

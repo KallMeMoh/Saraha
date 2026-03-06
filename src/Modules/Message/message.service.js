@@ -22,6 +22,31 @@ export const getUserMessages = async (userId) => {
   return messages;
 };
 
+export const createMessage = async (
+  authorId,
+  receiverId,
+  content,
+  attachments = [],
+) => {
+  const recipient = await DBRepo.exists({
+    Model: UserModel,
+    filters: { _id: receiverId },
+  });
+  if (!recipient?._id) notFoundException("Recipient doesn't exist");
+
+  const message = await DBRepo.create({
+    Model: MessageModel,
+    data: {
+      receiverId: recipient._id,
+      content,
+      attachments: attachments.map((file) => file.path),
+      ...(authorId ? { senderId: authorId } : {}),
+    },
+  });
+
+  return message;
+};
+
 export const deleteMessage = async (userId, messageId) => {
   const message = await DBRepo.findOne({
     Model: MessageModel,
@@ -33,7 +58,6 @@ export const deleteMessage = async (userId, messageId) => {
   // middleware already prevents unauthorized access and
   // if logged in isn't the sender or message sender was anonymous
   // then can't delete message
-  console.log(message.senderId.equals(userId));
 
   if (!message.senderId.equals(userId) || !message.senderId)
     return unauthorizedException('You are not the author of this message');

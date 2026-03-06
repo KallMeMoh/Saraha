@@ -6,6 +6,10 @@ const messageSchema = new Schema(
       type: String,
       required: true,
     },
+    attachments: {
+      type: [String],
+      default: [],
+    },
     senderId: {
       type: Schema.Types.ObjectId,
       ref: 'User',

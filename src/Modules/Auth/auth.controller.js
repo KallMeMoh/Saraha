@@ -19,10 +19,20 @@ authRouter.post('/login', async (req, res) => {
 });
 
 authRouter.post(
-  '/refresh',
+  '/token/refresh',
   authenticate(true, TokenType.Refresh),
   async (req, res) => {
-    const data = await AuthService.rotateToken(req.userId, req.userRole);
+    const data = await AuthService.rotateToken(req.userId);
     return successResponse({ res, statusCode: 200, data });
   },
 );
+
+authRouter.post('/otp/resend', authenticate(), async (req, res) => {
+  await AuthService.resendOTP(req.userId);
+  return successResponse({ res, statusCode: 200 });
+});
+
+authRouter.post('/otp/verify', authenticate(), async (req, res) => {
+  await AuthService.verifyOTP(req.userId, req.body?.otp);
+  return successResponse({ res, statusCode: 200 });
+});

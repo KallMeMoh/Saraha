@@ -38,10 +38,15 @@ const deleteOne = async ({ Model, filters = {} }) => {
   return await Model.deleteOne(filters);
 };
 
+const updateOne = async ({ Model, filters, updates, options = {} }) => {
+  return await Model.updateOne(filters, updates, options);
+};
+
 export default {
   findOne,
   find,
   create,
   exists,
   deleteOne,
+  updateOne,
 };

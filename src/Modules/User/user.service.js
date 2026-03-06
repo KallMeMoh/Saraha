@@ -1,4 +1,7 @@
-import { notFoundException } from '../../common/response/response.js';
+import {
+  badRequestException,
+  notFoundException,
+} from '../../common/response/response.js';
 import { decrypt } from '../../common/utils/security/decrypt.js';
 import DBRepo from '../../DB/db.repository.js';
 import { MessageModel } from '../../DB/Models/Message.model.js';
@@ -17,21 +20,22 @@ export const getUserProfile = async (userId) => {
   return { ...userObj, phone: decrypt(userObj.phone) };
 };
 
-export const createMessage = async (authorId, receiverId, content) => {
-  const recipient = await DBRepo.exists({
+export const updateAvatar = async (userId, path) => {
+  const { matchedCount, modifiedCount } = await DBRepo.updateOne({
     Model: UserModel,
-    filters: { _id: receiverId },
-  });
-  if (!recipient?._id) notFoundException("Recipient doesn't exist");
-
-  const message = await DBRepo.create({
-    Model: MessageModel,
-    data: {
-      receiverId: recipient._id,
-      content,
-      ...(authorId ? { senderId: authorId } : {}),
-    },
+    filters: { _id: userId },
+    updates: { $set: { avatar: path } },
   });
 
-  return message;
+  if (!matchedCount) return notFoundException('Account does not exist');
+  if (!modifiedCount) return badRequestException("Couldn't update avatar");
+};
+
+export const deleteAccount = async (userId) => {
+  const { deletedCount } = await DBRepo.deleteOne({
+    Model: UserModel,
+    filters: { _id: userId },
+  });
+
+  if (deletedCount < 1) return notFoundException('Account does not exist');
 };
