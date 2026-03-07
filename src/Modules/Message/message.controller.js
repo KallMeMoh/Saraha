@@ -5,7 +5,7 @@ import {
   successResponse,
 } from '../../common/response/response.js';
 import { authenticate } from '../../middlewares/authentication.js';
-import { uploadMiddleware } from '../../middlewares/multer.js';
+import { uploadMiddleware } from '../../middlewares/upload.js';
 
 export const messageRouter = Router();
 

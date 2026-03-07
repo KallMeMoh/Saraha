@@ -3,7 +3,7 @@ import * as UserService from './user.service.js';
 import { successResponse } from '../../common/response/response.js';
 import { authorize } from '../../middlewares/authorization.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
-import { uploadMiddleware } from '../../middlewares/multer.js';
+import { uploadMiddleware } from '../../middlewares/upload.js';
 
 export const userRouter = Router();
 
