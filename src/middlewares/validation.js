@@ -16,10 +16,10 @@ export const validate = (schema) => async (req, res, next) => {
   } catch (err) {
     console.log(err);
     return res.status(422).json({
-      errMsg: 'Validation failed',
+      message: 'Validation failed',
       errors: err.details.map((d) => ({
         field: d.path.join('.'),
-        message: d.message,
+        error: d.message,
       })),
     });
   }
