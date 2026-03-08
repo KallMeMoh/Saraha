@@ -1,6 +1,17 @@
+import Joi from 'joi';
+import { HttpError } from '../common/errors/HttpError.js';
+
 export const errorHandler = (err, req, res, next) => {
   if (err instanceof HttpError) {
     return res.status(err.statusCode).json({ error: err.message });
+  } else if (err instanceof Joi.ValidationError) {
+    return res.status(422).json({
+      message: 'Validation failed',
+      errors: err.details.map((d) => ({
+        field: d.path.join('.'),
+        error: d.message,
+      })),
+    });
   }
 
   console.error(err);
