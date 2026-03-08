@@ -26,7 +26,7 @@ export const authenticate =
     let verified;
     try {
       if (type !== tokenType) {
-        if (strict) throw new HttpError(402, 'Invalid or malformed token');
+        if (strict) throw new HttpError(401, 'Invalid or malformed token');
         return next();
       }
 
@@ -34,7 +34,7 @@ export const authenticate =
 
       verified = jwt.verify(token, signature);
     } catch (err) {
-      if (strict) throw new HttpError(402, 'Invalid or malformed token');
+      if (strict) throw new HttpError(401, 'Invalid or malformed token');
       return next();
     }
 

@@ -59,11 +59,10 @@ export const login = async (bodyData) => {
   });
   const matchedPassword = await compare(password, hashed_password);
 
-  if (!matchedPassword) throw new HttpError(402, 'Invalid credentials');
+  if (!matchedPassword) throw new HttpError(401, 'Invalid credentials');
 
   const { accessSignature, refreshSignature } = getSignature(role);
 
-  // I hate this...
   const accessToken = jwt.sign({ sub: _id }, accessSignature, {
     audience: [role, TokenType.Access],
     expiresIn: '15m',
@@ -118,7 +117,7 @@ export const verifyOTP = async (userId, code) => {
 
   if (!user) throw new HttpError(404, 'Account does not exist');
   if (user.verified) throw new HttpError(409, 'Account already verified');
-  if (!otp) throw new HttpError(402, 'Invalid OTP code');
+  if (!otp) throw new HttpError(401, 'Invalid OTP code');
 
   await otp.deleteOne();
 
