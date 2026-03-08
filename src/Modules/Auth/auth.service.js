@@ -12,6 +12,7 @@ import { OTPModel } from '../../DB/Models/OTP.model.js';
 import { HttpError } from '../../common/errors/HttpError.js';
 
 export const signup = async (bodyData) => {
+  console.log(bodyData);
   const { email } = bodyData;
 
   // this hurts my soul more than it hurts yours

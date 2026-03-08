@@ -6,8 +6,8 @@ export const errorHandler = (err, req, res, next) => {
     return res.status(err.statusCode).json({ error: err.message });
   } else if (err instanceof Joi.ValidationError) {
     return res.status(422).json({
-      message: 'Validation failed',
-      errors: err.details.map((d) => ({
+      error: 'Validation failed',
+      details: err.details.map((d) => ({
         field: d.path.join('.'),
         error: d.message,
       })),
