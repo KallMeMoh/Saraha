@@ -6,6 +6,7 @@ import {
   gender,
   birth_date,
   password,
+  ln,
 } from './fields.js';
 
 export const signupSchema = Joi.object({
@@ -23,7 +24,7 @@ export const signupSchema = Joi.object({
     .required()
     .messages({ 'any.required': 'Missing request body' }),
 
-  query: Joi.object({}).required(),
+  query: Joi.object({ ln }).required(),
 
   params: Joi.object({}).required(), // must expect nothing from the user
 });

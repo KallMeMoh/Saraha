@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { GenderEnum } from '../enums/user.enum.js';
 
-export let username = Joi.string()
+export const username = Joi.string()
   .trim()
   .min(3)
   .max(20)
@@ -16,7 +16,7 @@ export let username = Joi.string()
     'any.required': 'Missing username field',
   });
 
-export let email = Joi.string()
+export const email = Joi.string()
   .trim()
   .lowercase()
   .email()
@@ -28,7 +28,7 @@ export let email = Joi.string()
     'any.required': 'Missing email field',
   });
 
-export let password = Joi.string()
+export const password = Joi.string()
   .min(8)
   .max(72)
   .pattern(/[A-Z]/, 'uppercase')
@@ -44,7 +44,7 @@ export let password = Joi.string()
     'any.required': 'Missing password fields',
   });
 
-export let phone = Joi.string()
+export const phone = Joi.string()
   .trim()
   .pattern(/^\+[1-9]\d{1,14}$/)
   .required()
@@ -54,7 +54,7 @@ export let phone = Joi.string()
     'any.required': 'Missing phone field',
   });
 
-export let birth_date = Joi.date()
+export const birth_date = Joi.date()
   .custom((value, helpers) => {
     const minAge = 16;
     const cutoff = new Date();
@@ -70,7 +70,7 @@ export let birth_date = Joi.date()
     'date.minAge': 'You must be at least 16 years old',
   });
 
-export let gender = Joi.string()
+export const gender = Joi.string()
   .trim()
   .valid(...Object.keys(GenderEnum))
   .required()
@@ -79,13 +79,18 @@ export let gender = Joi.string()
     'any.required': 'Missing gender field',
   });
 
-export let content = Joi.string().trim().min(1).max(2000).required().messages({
-  'string.min': 'Message cannot be empty',
-  'string.max': 'Message cannot exceed 2000 characters',
-  'any.required': 'Missing message content',
-});
+export const content = Joi.string()
+  .trim()
+  .min(1)
+  .max(2000)
+  .required()
+  .messages({
+    'string.min': 'Message cannot be empty',
+    'string.max': 'Message cannot exceed 2000 characters',
+    'any.required': 'Missing message content',
+  });
 
-export let recipientId = Joi.string()
+export const recipientId = Joi.string()
   .pattern(/^[a-fA-F0-9]{24}$/, 'ObjectId')
   .required()
   .messages({
@@ -93,7 +98,7 @@ export let recipientId = Joi.string()
     'any.required': 'Missing recipient ID',
   });
 
-export let code = Joi.string()
+export const code = Joi.string()
   .length(6)
   .pattern(/^[0-9]{6}$/)
   .required()
@@ -101,4 +106,12 @@ export let code = Joi.string()
     'string.length': 'OTP must be 6 digits',
     'string.pattern.base': 'OTP must be numeric',
     'any.required': 'Missing OTP code',
+  });
+
+export const ln = Joi.string()
+  .trim()
+  .valid('en') // .valid(...Object,keys(LocalityEnum)) or something like that?
+  .optional()
+  .messages({
+    'any.only': 'Language not supported',
   });
