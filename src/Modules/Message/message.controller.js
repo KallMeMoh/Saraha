@@ -1,19 +1,15 @@
 import { Router } from 'express';
 import * as MessageService from './message.service.js';
-import {
-  notFoundException,
-  successResponse,
-} from '../../common/response/response.js';
 import { authenticate } from '../../middlewares/authentication.js';
 import { uploadMiddleware } from '../../middlewares/upload.js';
 
 export const messageRouter = Router();
 
-// I don't like this also >:(
+// I am slowly starting to like this also :)
 
 messageRouter.get('/', authenticate(), async (req, res) => {
   const messages = await MessageService.getUserMessages(req.userId);
-  return successResponse({ res, statusCode: 200, data: { messages } });
+  return res.status(200).json({ messages });
 });
 
 messageRouter.post(
@@ -27,17 +23,11 @@ messageRouter.post(
       req.body.content,
       req.files,
     );
-    return successResponse({ res, statusCode: 200, data: { message } });
+    return res.status(200).json({ message });
   },
 );
 
 messageRouter.delete('/:messageId', authenticate(), async (req, res) => {
-  const deleted = await MessageService.deleteMessage(
-    req.userId,
-    req.params.messageId,
-  );
-
-  if (deleted > 0) return successResponse({ res, statusCode: 200 });
-
-  return notFoundException('Failed to delete message');
+  await MessageService.deleteMessage(req.userId, req.params.messageId);
+  return res.status(200).json({ message: 'Message deleted successfully' });
 });

@@ -2,12 +2,6 @@ import { compare, hash } from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { UserModel } from '../../DB/Models/User.model.js';
 import { SALT_ROUNDS } from '../../../config/config.service.js';
-import {
-  badRequestException,
-  conflictException,
-  notFoundException,
-  unauthorizedException,
-} from '../../common/response/response.js';
 import DBRepo from '../../DB/db.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
 import { TokenType } from '../../common/enums/token.enum.js';
@@ -15,6 +9,7 @@ import { getSignature } from '../../common/utils/security/signature.js';
 import { GenderEnum, RoleEnum } from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/sendOTPEmail.js';
 import { OTPModel } from '../../DB/Models/OTP.model.js';
+import { HttpError } from '../../common/errors/HttpError.js';
 
 export const signup = async (bodyData) => {
   const { email } = bodyData;
@@ -25,7 +20,7 @@ export const signup = async (bodyData) => {
     filters: { email },
   });
 
-  if (existingUser) return conflictException('Email already exists');
+  if (existingUser) throw new HttpError(409, 'Email already exists');
 
   let gender = GenderEnum[bodyData.gender];
 
@@ -56,14 +51,14 @@ export const login = async (bodyData) => {
     filters: { email },
   });
 
-  if (!existingUser) return notFoundException('User does not exist');
+  if (!existingUser) throw new HttpError(404, 'User does not exist');
 
   let { _id, role, hashed_password } = existingUser.toObject({
     getters: false,
   });
   const matchedPassword = await compare(password, hashed_password);
 
-  if (!matchedPassword) return unauthorizedException('Invalid credentials');
+  if (!matchedPassword) throw new HttpError(402, 'Invalid credentials');
 
   const { accessSignature, refreshSignature } = getSignature(role);
 
@@ -87,7 +82,7 @@ export const rotateToken = async (userId) => {
     filters: { _id: userId },
   });
 
-  if (!user) return notFoundException('Account does not exist');
+  if (!user) throw new HttpError(404, 'Account does not exist');
 
   const { accessSignature } = getSignature(RoleEnum[user.role]);
   const newAccessToken = jwt.sign({ sub: userId }, accessSignature, {
@@ -95,7 +90,7 @@ export const rotateToken = async (userId) => {
     expiresIn: '15m',
   });
 
-  return { accessToken: newAccessToken };
+  return newAccessToken;
 };
 
 export const resendOTP = async (userId) => {
@@ -104,8 +99,8 @@ export const resendOTP = async (userId) => {
     DBRepo.exists({ Model: OTPModel, filters: { authorId: userId } }),
   ]);
 
-  if (!user) return notFoundException('Account does not exist');
-  if (user.verified) return conflictException('Account already verified');
+  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (user.verified) throw new HttpError(409, 'Account already verified');
   if (otp) return;
 
   await sendOTPEmail(user);
@@ -120,9 +115,9 @@ export const verifyOTP = async (userId, code) => {
     }),
   ]);
 
-  if (!user) return notFoundException('Account does not exist');
-  if (user.verified) return conflictException('Account already verified');
-  if (!otp) return unauthorizedException('Invalid OTP code');
+  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (user.verified) throw new HttpError(409, 'Account already verified');
+  if (!otp) throw new HttpError(402, 'Invalid OTP code');
 
   await otp.deleteOne();
 

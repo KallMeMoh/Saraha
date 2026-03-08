@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "module": "esnext",
-    "target": "ES6",
-    // "types": ["node"],
-    "moduleResolution": "Node"
+    "module": "NodeNext",
+    "target": "esnext",
+    "moduleResolution": "NodeNext"
   },
   "exclude": ["node_modules"]
 }

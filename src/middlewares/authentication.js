@@ -1,8 +1,4 @@
 import jwt from 'jsonwebtoken';
-import {
-  badRequestException,
-  unauthorizedException,
-} from '../common/response/response.js';
 import { TokenType } from '../common/enums/token.enum.js';
 import { getSignature } from '../common/utils/security/signature.js';
 
@@ -14,12 +10,12 @@ export const authenticate =
     const authHeader = req.headers?.authorization;
 
     if (!authHeader) {
-      if (strict) return badRequestException('Missing token');
+      if (strict) throw new HttpError(400, 'Missing token');
       return next();
     }
 
     if (!authHeader.startsWith('Bearer ')) {
-      if (strict) return badRequestException('Invalid bearer key');
+      if (strict) throw new HttpError(400, 'Invalid bearer key');
       return next();
     }
 
@@ -30,7 +26,7 @@ export const authenticate =
     let verified;
     try {
       if (type !== tokenType) {
-        if (strict) return unauthorizedException('Invalid or malformed token');
+        if (strict) throw new HttpError(402, 'Invalid or malformed token');
         return next();
       }
 
@@ -38,7 +34,7 @@ export const authenticate =
 
       verified = jwt.verify(token, signature);
     } catch (err) {
-      if (strict) return unauthorizedException('Invalid or malformed token');
+      if (strict) throw new HttpError(402, 'Invalid or malformed token');
       return next();
     }
 

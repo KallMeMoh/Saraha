@@ -1,38 +1,44 @@
 import { Router } from 'express';
 import * as AuthService from './auth.service.js';
-import { successResponse } from '../../common/response/response.js';
 import { authenticate } from '../../middlewares/authentication.js';
 import { TokenType } from '../../common/enums/token.enum.js';
+import { validate } from '../../middlewares/validation.js';
+import { loginSchema } from '../../common/validation/login.schema.js';
+import { signupSchema } from '../../common/validation/signup.schema.js';
 
 export const authRouter = Router();
 
-// I don't like this >:(
+// I am slowly starting to like this :)
 
-authRouter.post('/signup', async (req, res) => {
-  const data = await AuthService.signup(req.body);
-  return successResponse({ res, statusCode: 201 });
+authRouter.post('/signup', validate(signupSchema), async (req, res) => {
+  await AuthService.signup(req.body);
+  return res.status(201).json({ message: 'Account created successfully' });
 });
 
-authRouter.post('/login', async (req, res) => {
-  const data = await AuthService.login(req.body);
-  return successResponse({ res, statusCode: 200, data });
+authRouter.post('/login', validate(loginSchema), async (req, res) => {
+  const tokens = await AuthService.login(req.body);
+  return res.status(200).json({ message: 'Logged in successfully', ...tokens });
 });
 
 authRouter.post(
   '/token/refresh',
   authenticate(true, TokenType.Refresh),
   async (req, res) => {
-    const data = await AuthService.rotateToken(req.userId);
-    return successResponse({ res, statusCode: 200, data });
+    const accessToken = await AuthService.rotateToken(req.userId);
+    return res
+      .status(200)
+      .json({ message: 'Token refreshed successfully', accessToken });
   },
 );
 
 authRouter.post('/otp/resend', authenticate(), async (req, res) => {
   await AuthService.resendOTP(req.userId);
-  return successResponse({ res, statusCode: 200 });
+  return res.status(200).json({ message: 'OTP code email successfully' });
 });
 
 authRouter.post('/otp/verify', authenticate(), async (req, res) => {
   await AuthService.verifyOTP(req.userId, req.body?.otp);
-  return successResponse({ res, statusCode: 200 });
+  return res
+    .status(200)
+    .json({ message: 'Account has been verified successfully' });
 });

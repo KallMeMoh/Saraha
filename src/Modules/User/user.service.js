@@ -1,10 +1,5 @@
-import {
-  badRequestException,
-  notFoundException,
-} from '../../common/response/response.js';
 import { decrypt } from '../../common/utils/security/decrypt.js';
 import DBRepo from '../../DB/db.repository.js';
-import { MessageModel } from '../../DB/Models/Message.model.js';
 import { UserModel } from '../../DB/Models/User.model.js';
 
 export const getUserProfile = async (userId) => {
@@ -14,7 +9,7 @@ export const getUserProfile = async (userId) => {
     select: '-hashed_password',
   });
 
-  if (!user) return notFoundException("User doesn't exist");
+  if (!user) throw new HttpError(404, "User doesn't exist");
 
   const userObj = user.toObject({ getters: true });
   return { ...userObj, phone: decrypt(userObj.phone) };
@@ -27,8 +22,8 @@ export const updateAvatar = async (userId, path) => {
     updates: { $set: { avatar: path } },
   });
 
-  if (!matchedCount) return notFoundException('Account does not exist');
-  if (!modifiedCount) return badRequestException("Couldn't update avatar");
+  if (!matchedCount) throw new HttpError(404, 'Account does not exist');
+  if (!modifiedCount) throw new HttpError(400, "Couldn't update avatar");
 };
 
 export const deleteAccount = async (userId) => {
@@ -37,5 +32,5 @@ export const deleteAccount = async (userId) => {
     filters: { _id: userId },
   });
 
-  if (deletedCount < 1) return notFoundException('Account does not exist');
+  if (deletedCount < 1) throw new HttpError(404, 'Account does not exist');
 };

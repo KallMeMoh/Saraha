@@ -1,5 +1,4 @@
 import { RoleEnum } from '../common/enums/user.enum.js';
-import { forbiddenException } from '../common/response/response.js';
 
 export const authorize =
   (authorizedRoles = RoleEnum.User) =>
@@ -13,7 +12,7 @@ export const authorize =
     // I would have to use next(err) and not just throw
     // an error
     if (!matchedRole)
-      return forbiddenException("You don't have enough permissions");
+      throw new HttpError(403, "You don't have enough permissions");
 
     next();
   };
