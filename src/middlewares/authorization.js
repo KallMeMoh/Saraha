@@ -1,4 +1,5 @@
 import { RoleEnum } from '../common/enums/user.enum.js';
+import { HttpError } from '../common/errors/HttpError.js';
 
 export const authorize =
   (authorizedRoles = RoleEnum.User) =>

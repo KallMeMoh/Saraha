@@ -17,8 +17,8 @@ userRouter.get('/me', async (req, res) => {
 
 userRouter.get(
   '/:userId',
-  validate(profileSchema),
   authorize(RoleEnum.Admin),
+  validate(profileSchema),
   async (req, res) => {
     const user = await UserService.getUserProfile(req.params.userId);
     return res.status(200).json(user);
