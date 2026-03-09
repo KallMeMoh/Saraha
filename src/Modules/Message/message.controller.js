@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as MessageService from './message.service.js';
 import { authenticate } from '../../middlewares/authentication.js';
-import { uploadMiddleware } from '../../middlewares/upload.js';
+import { upload } from '../../middlewares/upload.js';
 
 export const messageRouter = Router();
 
@@ -15,7 +15,7 @@ messageRouter.get('/', authenticate(), async (req, res) => {
 messageRouter.post(
   '/:receiverId',
   authenticate(false),
-  uploadMiddleware([{ name: 'attachments', maxCount: 10 }]),
+  upload.fields([{ name: 'attachments', maxCount: 10 }]),
   async (req, res) => {
     const message = await MessageService.createMessage(
       req.userId,

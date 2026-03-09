@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as UserService from './user.service.js';
 import { authorize } from '../../middlewares/authorization.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
-import { uploadMiddleware } from '../../middlewares/upload.js';
+import { upload } from '../../middlewares/upload.js';
 import { validate } from '../../middlewares/validation.js';
 import { profileSchema } from '../../common/validation/profile.schema.js';
 
@@ -27,7 +27,7 @@ userRouter.get(
 
 userRouter.put(
   '/avatar',
-  uploadMiddleware([{ name: 'avatar', maxCount: 1 }]),
+  upload.fields([{ name: 'avatar', maxCount: 1 }]),
   async (req, res) => {
     await UserService.updateAvatar(req.userId, req.files[0].path);
     return res.status(200).json({ message: 'Avatar updated successfully' });
