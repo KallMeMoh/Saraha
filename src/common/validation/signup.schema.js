@@ -24,7 +24,7 @@ export const signupSchema = Joi.object({
     .required()
     .messages({ 'any.required': 'Missing request body' }),
 
-  query: Joi.object({ ln }).required(),
+  query: Joi.object({ ln }),
 
-  params: Joi.object({}).required(), // must expect nothing from the user
+  params: Joi.object({}), // must expect nothing from the user
 });

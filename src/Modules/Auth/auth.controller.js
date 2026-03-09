@@ -5,6 +5,7 @@ import { TokenType } from '../../common/enums/token.enum.js';
 import { validate } from '../../middlewares/validation.js';
 import { loginSchema } from '../../common/validation/login.schema.js';
 import { signupSchema } from '../../common/validation/signup.schema.js';
+import { OTPSchema } from '../../common/validation/otp.schema.js';
 
 export const authRouter = Router();
 
@@ -33,12 +34,17 @@ authRouter.post(
 
 authRouter.post('/otp/resend', authenticate(), async (req, res) => {
   await AuthService.resendOTP(req.userId);
-  return res.status(200).json({ message: 'OTP code email successfully' });
+  return res.status(200).json({ message: 'OTP code emailed successfully' });
 });
 
-authRouter.post('/otp/verify', authenticate(), async (req, res) => {
-  await AuthService.verifyOTP(req.userId, req.body?.otp);
-  return res
-    .status(200)
-    .json({ message: 'Account has been verified successfully' });
-});
+authRouter.post(
+  '/otp/verify',
+  validate(OTPSchema),
+  authenticate(),
+  async (req, res) => {
+    await AuthService.verifyOTP(req.userId, req.body?.otp);
+    return res
+      .status(200)
+      .json({ message: 'Account has been verified successfully' });
+  },
+);

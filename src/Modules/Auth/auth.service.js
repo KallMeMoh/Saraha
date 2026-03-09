@@ -68,6 +68,8 @@ export const login = async (bodyData) => {
     expiresIn: '15m',
   });
 
+  // shouldn't refresh token be an httpOnly
+  // cookie and not sent in response body?
   const refreshToken = jwt.sign({ sub: _id }, refreshSignature, {
     audience: [role, TokenType.Refresh],
     expiresIn: '1y',
@@ -115,9 +117,8 @@ export const verifyOTP = async (userId, code) => {
     }),
   ]);
 
-  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (!user || !otp) throw new HttpError(401, 'Invalid or expired OTP');
   if (user.verified) throw new HttpError(409, 'Account already verified');
-  if (!otp) throw new HttpError(401, 'Invalid OTP code');
 
   await otp.deleteOne();
 

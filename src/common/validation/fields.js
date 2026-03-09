@@ -90,7 +90,7 @@ export const content = Joi.string()
     'any.required': 'Missing message content',
   });
 
-export const recipientId = Joi.string()
+export const userId = Joi.string()
   .pattern(/^[a-fA-F0-9]{24}$/, 'ObjectId')
   .required()
   .messages({
@@ -98,9 +98,9 @@ export const recipientId = Joi.string()
     'any.required': 'Missing recipient ID',
   });
 
-export const code = Joi.string()
+export const otp = Joi.string()
   .length(6)
-  .pattern(/^[0-9]{6}$/)
+  .pattern(/^[0-9]+$/)
   .required()
   .messages({
     'string.length': 'OTP must be 6 digits',

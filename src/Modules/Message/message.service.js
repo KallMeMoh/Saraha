@@ -1,5 +1,4 @@
 import { HttpError } from '../../common/errors/HttpError.js';
-import { recipientId } from '../../common/validation/fields.js';
 import DBRepo from '../../DB/db.repository.js';
 import { MessageModel } from '../../DB/Models/Message.model.js';
 import { UserModel } from '../../DB/Models/User.model.js';

@@ -3,6 +3,8 @@ import * as UserService from './user.service.js';
 import { authorize } from '../../middlewares/authorization.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
 import { uploadMiddleware } from '../../middlewares/upload.js';
+import { validate } from '../../middlewares/validation.js';
+import { profileSchema } from '../../common/validation/profile.schema.js';
 
 export const userRouter = Router();
 
@@ -13,10 +15,15 @@ userRouter.get('/me', async (req, res) => {
   return res.status(200).json(user);
 });
 
-userRouter.get('/:userId', authorize(RoleEnum.Admin), async (req, res) => {
-  const user = await UserService.getUserProfile(req.params.userId);
-  return res.status(200).json(user);
-});
+userRouter.get(
+  '/:userId',
+  validate(profileSchema),
+  authorize(RoleEnum.Admin),
+  async (req, res) => {
+    const user = await UserService.getUserProfile(req.params.userId);
+    return res.status(200).json(user);
+  },
+);
 
 userRouter.put(
   '/avatar',

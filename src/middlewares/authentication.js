@@ -1,21 +1,20 @@
 import jwt from 'jsonwebtoken';
 import { TokenType } from '../common/enums/token.enum.js';
 import { getSignature } from '../common/utils/security/signature.js';
+import { HttpError } from '../common/errors/HttpError.js';
 
 export const authenticate =
   (strict = true, tokenType = TokenType.Access) =>
   (req, res, next) => {
-    console.log(strict);
-
     const authHeader = req.headers?.authorization;
 
     if (!authHeader) {
-      if (strict) throw new HttpError(400, 'Missing token');
+      if (strict) throw new HttpError(401, `Missing ${tokenType} token`);
       return next();
     }
 
     if (!authHeader.startsWith('Bearer ')) {
-      if (strict) throw new HttpError(400, 'Invalid bearer key');
+      if (strict) throw new HttpError(401, 'Invalid bearer key');
       return next();
     }
 
