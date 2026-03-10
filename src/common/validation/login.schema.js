@@ -9,4 +9,6 @@ export const loginSchema = Joi.object({
   query: Joi.object({ ln }),
 
   params: Joi.object({}),
+
+  files: Joi.object({}),
 });

@@ -90,12 +90,12 @@ export const content = Joi.string()
     'any.required': 'Missing message content',
   });
 
-export const userId = Joi.string()
+export const id = Joi.string()
   .pattern(/^[a-fA-F0-9]{24}$/, 'ObjectId')
   .required()
   .messages({
-    'string.pattern.name': 'Invalid recipient ID',
-    'any.required': 'Missing recipient ID',
+    'string.pattern.name': 'Invalid ID',
+    'any.required': 'Missing ID',
   });
 
 export const otp = Joi.string()
@@ -115,3 +115,14 @@ export const ln = Joi.string()
   .messages({
     'any.only': 'Language not supported',
   });
+
+export const file = Joi.object({
+  fieldname: Joi.string().required(),
+  originalname: Joi.string().required(),
+  encoding: Joi.string().required(),
+  mimetype: Joi.string().required(),
+  destination: Joi.string().required(),
+  filename: Joi.string().required(),
+  path: Joi.string().required(),
+  size: Joi.number().required(),
+}).required();

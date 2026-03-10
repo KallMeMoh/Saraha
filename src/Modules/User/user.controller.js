@@ -2,9 +2,10 @@ import { Router } from 'express';
 import * as UserService from './user.service.js';
 import { authorize } from '../../middlewares/authorization.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
-import { upload } from '../../middlewares/upload.js';
+import { uploadAvatar } from '../../middlewares/upload.js';
 import { validate } from '../../middlewares/validation.js';
-import { profileSchema } from '../../common/validation/profile.schema.js';
+import { IDSchema } from '../../common/validation/id.schema.js';
+import { avatarSchema } from '../../common/validation/avatar.schema.js';
 
 export const userRouter = Router();
 
@@ -16,20 +17,21 @@ userRouter.get('/me', async (req, res) => {
 });
 
 userRouter.get(
-  '/:userId',
+  '/:id',
   authorize(RoleEnum.Admin),
-  validate(profileSchema),
+  validate(IDSchema),
   async (req, res) => {
-    const user = await UserService.getUserProfile(req.params.userId);
+    const user = await UserService.getUserProfile(req.params.id);
     return res.status(200).json(user);
   },
 );
 
 userRouter.put(
   '/avatar',
-  upload.fields([{ name: 'avatar', maxCount: 1 }]),
+  uploadAvatar.fields([{ name: 'avatar', maxCount: 1 }]),
+  validate(avatarSchema),
   async (req, res) => {
-    await UserService.updateAvatar(req.userId, req.files[0].path);
+    await UserService.updateAvatar(req.userId, req.files.avatar[0].filename);
     return res.status(200).json({ message: 'Avatar updated successfully' });
   },
 );
@@ -39,7 +41,12 @@ userRouter.delete('/', async (req, res) => {
   return res.status(200).json({ message: 'Account deleted successfully' });
 });
 
-userRouter.delete('/:userId', authorize(RoleEnum.Admin), async (req, res) => {
-  await UserService.deleteAccount(req.params.userId);
-  return res.status(200).json({ message: 'Account deleted successfully' });
-});
+userRouter.delete(
+  '/:id',
+  authorize(RoleEnum.Admin),
+  validate(IDSchema),
+  async (req, res) => {
+    await UserService.deleteAccount(req.params.id);
+    return res.status(200).json({ message: 'Account deleted successfully' });
+  },
+);

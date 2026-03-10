@@ -27,4 +27,6 @@ export const signupSchema = Joi.object({
   query: Joi.object({ ln }),
 
   params: Joi.object({}), // must expect nothing from the user
+
+  files: Joi.object({}), // same here
 });

@@ -4,16 +4,16 @@ import { MessageModel } from '../../DB/Models/Message.model.js';
 import { UserModel } from '../../DB/Models/User.model.js';
 
 export const getUserMessages = async (userId) => {
-  const { _id } = await DBRepo.exists({
+  const exist = await DBRepo.exists({
     Model: UserModel,
     filters: { _id: userId },
   });
-  if (!_id) throw new HttpError(404, 'Account does not exist');
+  if (!exist) throw new HttpError(404, 'Account does not exist');
 
   const messages =
     (await DBRepo.find({
       Model: MessageModel,
-      filters: { senderId: _id },
+      filters: { senderId: exist._id },
     })) || [];
 
   return messages;
@@ -25,19 +25,29 @@ export const createMessage = async (
   content,
   attachments = [],
 ) => {
-  const recipient = await DBRepo.exists({
-    Model: UserModel,
-    filters: { _id: receiverId },
-  });
+  const [recipient, sender] = await Promise.all([
+    DBRepo.exists({
+      Model: UserModel,
+      filters: { _id: receiverId },
+    }),
+    DBRepo.exists({
+      Model: UserModel,
+      filters: { _id: authorId },
+    }),
+  ]);
   if (!recipient?._id) throw new HttpError(404, "Recipient doesn't exist");
+  if (sender && recipient._id.equals(sender._id))
+    throw new HttpError(400, 'Sending a message to yourself?');
 
   const message = await DBRepo.create({
     Model: MessageModel,
     data: {
       receiverId: recipient._id,
       content,
-      attachments: attachments.map((file) => file.path),
-      ...(authorId ? { senderId: authorId } : {}),
+      attachments: attachments.map(
+        (file) => `uploads/attachments/${file.filename}`,
+      ),
+      ...(sender ? { senderId: sender._id } : {}),
     },
   });
 
