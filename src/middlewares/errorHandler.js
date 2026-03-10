@@ -12,6 +12,8 @@ export const errorHandler = (err, req, res, next) => {
         error: d.message,
       })),
     });
+  } else if (err instanceof MulterError) {
+    return res.status(422).json({ error: err.message });
   }
 
   console.error(err);
