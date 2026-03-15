@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import { HttpError } from '../common/errors/HttpError.js';
+import { MulterError } from 'multer';
 
 export const errorHandler = (err, req, res, next) => {
   if (err instanceof HttpError) {
