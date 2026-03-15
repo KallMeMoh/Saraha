@@ -1,15 +1,20 @@
 import { compare, hash } from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { UserModel } from '../../DB/Models/User.model.js';
-import { SALT_ROUNDS } from '../../../config/config.service.js';
+import { CLIENT_ID, SALT_ROUNDS } from '../../../config/config.service.js';
 import DBRepo from '../../DB/db.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
 import { TokenType } from '../../common/enums/token.enum.js';
 import { getSignature } from '../../common/utils/security/signature.js';
-import { GenderEnum, RoleEnum } from '../../common/enums/user.enum.js';
+import {
+  GenderEnum,
+  ProviderEnum,
+  RoleEnum,
+} from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/sendOTPEmail.js';
 import { OTPModel } from '../../DB/Models/OTP.model.js';
 import { HttpError } from '../../common/errors/HttpError.js';
+import { OAuth2Client } from 'google-auth-library';
 
 export const signup = async (bodyData) => {
   const { email } = bodyData;
@@ -75,6 +80,34 @@ export const login = async (bodyData) => {
   });
 
   return { accessToken, refreshToken };
+};
+
+const client = new OAuth2Client();
+export const googleSignup = async (idToken) => {
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: CLIENT_ID,
+  });
+
+  const { given_name, email, picture, email_verified } = ticket.getPayload();
+
+  const user = await DBRepo.findOne({
+    Model: UserModel,
+    filters: { email },
+  });
+
+  if (user) throw new HttpError(409, 'Account already exists');
+
+  await DBRepo.create({
+    Model: UserModel,
+    data: {
+      username: given_name,
+      email,
+      verified: email_verified,
+      avatar: picture,
+      provider: ProviderEnum.Google,
+    },
+  });
 };
 
 export const rotateToken = async (userId) => {

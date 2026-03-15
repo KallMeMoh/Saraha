@@ -1,5 +1,9 @@
 import { model, Schema } from 'mongoose';
-import { GenderEnum, RoleEnum } from '../../common/enums/user.enum.js';
+import {
+  GenderEnum,
+  ProviderEnum,
+  RoleEnum,
+} from '../../common/enums/user.enum.js';
 
 const userSchema = new Schema(
   {
@@ -14,22 +18,22 @@ const userSchema = new Schema(
     },
     hashed_password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.provider === ProviderEnum.System;
+      },
     },
     phone: String, // is this supposed to be unique? never used Saraha before
     birth_date: Date,
     gender: {
       type: Number,
       enum: Object.values(GenderEnum),
-      required: true,
-      get: (val) =>
-        Object.keys(GenderEnum).find((key) => GenderEnum[key] === val),
+      get: (val) => Object.keys(GenderEnum)[val],
     },
     role: {
       type: Number,
       enum: Object.values(RoleEnum),
       default: RoleEnum.User,
-      get: (val) => Object.keys(RoleEnum).find((key) => RoleEnum[key] === val),
+      get: (val) => Object.keys(RoleEnum)[val],
     },
     verified: {
       type: Boolean,
@@ -38,6 +42,12 @@ const userSchema = new Schema(
     avatar: {
       type: String,
       default: null,
+    },
+    provider: {
+      type: Number,
+      enum: Object.values(ProviderEnum),
+      required: true,
+      get: (val) => Object.keys(ProviderEnum)[val],
     },
   },
   {
