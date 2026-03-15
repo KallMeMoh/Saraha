@@ -7,9 +7,10 @@ import { authenticate } from './middlewares/authentication.js';
 import { messageRouter } from './Modules/Message/message.controller.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { HttpError } from './common/errors/HttpError.js';
-import { mkdir, readFile } from 'fs/promises';
-import { dirname, join, resolve } from 'path';
+import { mkdir } from 'fs/promises';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export default async function bootstrap() {
@@ -22,6 +23,12 @@ export default async function bootstrap() {
   ]);
 
   app.use(express.json());
+  app.use(
+    cors({
+      origin: ['http://localhost:3001'],
+      credentials: true,
+    }),
+  );
 
   // yes you are reasing this line right, anyone could
   // access any of the assets as they please...
