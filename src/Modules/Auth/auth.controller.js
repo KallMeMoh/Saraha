@@ -26,6 +26,11 @@ authRouter.post('/oauth/signup/google', async (req, res) => {
   return res.status(201).json({ message: 'Account created successfully' });
 });
 
+authRouter.post('/oauth/login/google', async (req, res) => {
+  const tokens = await AuthService.googleLogin(req.body);
+  return res.status(201).json({ message: 'Logged in successfully', ...tokens });
+});
+
 authRouter.post(
   '/token/refresh',
   authenticate(true, TokenType.Refresh),

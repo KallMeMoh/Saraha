@@ -11,6 +11,7 @@ import { sendOTPEmail } from '../../common/utils/email/sendOTPEmail.js';
 import { OTPModel } from '../../DB/Models/OTP.model.js';
 import { HttpError } from '../../common/errors/HttpError.js';
 import { OAuth2Client } from 'google-auth-library';
+import { generateTokens } from '../../common/utils/security/token.js';
 
 export const signup = async ({
   username,
@@ -62,21 +63,7 @@ export const login = async ({ email, password }) => {
   const matchedPassword = await compare(password, hashed_password);
   if (!matchedPassword) throw new HttpError(401, 'Invalid credentials');
 
-  const { accessSignature, refreshSignature } = getSignature(roleValue);
-
-  const accessToken = jwt.sign({ sub: _id }, accessSignature, {
-    audience: [roleValue, TokenType.Access],
-    expiresIn: '15m',
-  });
-
-  // shouldn't refresh token be an httpOnly
-  // cookie and not sent in response body?
-  const refreshToken = jwt.sign({ sub: _id }, refreshSignature, {
-    audience: [roleValue, TokenType.Refresh],
-    expiresIn: '1y',
-  });
-
-  return { accessToken, refreshToken };
+  return generateTokens(_id, roleValue);
 };
 
 const client = new OAuth2Client();
@@ -107,6 +94,27 @@ export const googleSignup = async (idToken) => {
   });
 };
 
+export const googleLogin = async () => {
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: CLIENT_ID,
+  });
+
+  const { email } = ticket.getPayload();
+
+  const user = await DBRepo.findOne({
+    Model: UserModel,
+    filters: {
+      email,
+      provider: ProviderEnum.Google,
+    },
+  });
+
+  if (!user) throw new HttpError(401, 'Invalid credentials');
+
+  return generateTokens(user._id, user.roleValue);
+};
+
 export const rotateToken = async (userId) => {
   const user = await DBRepo.findOne({
     Model: UserModel,
@@ -115,11 +123,10 @@ export const rotateToken = async (userId) => {
 
   if (!user) throw new HttpError(404, 'Account does not exist');
 
-  const { accessSignature } = getSignature(user.roleValue);
-  const newAccessToken = jwt.sign({ sub: userId }, accessSignature, {
-    audience: [user.roleValue, TokenType.Access],
-    expiresIn: '15m',
-  });
+  const { accessToken: newAccessToken } = generateTokens(
+    user._id,
+    user.roleValue,
+  );
 
   return newAccessToken;
 };
