@@ -3,7 +3,7 @@ import {
   ADMIN_REFRESH_SIGNATURE,
   USER_ACCESS_SIGNATURE,
   USER_REFRESH_SIGNATURE,
-} from '../../../../config/config.service.js';
+} from '../../../config/index.js';
 import { RoleEnum } from '../../enums/user.enum.js';
 
 export const getSignature = (userRole = RoleEnum.User) => {

@@ -1,6 +1,6 @@
 import { compare, hash } from 'bcrypt';
 import { UserModel } from '../../DB/Models/User.model.js';
-import { CLIENT_ID, SALT_ROUNDS } from '../../../config/config.service.js';
+import { CLIENT_ID, SALT_ROUNDS } from '../../config/index.js';
 import DBRepo from '../../DB/db.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
 import { ProviderEnum } from '../../common/enums/user.enum.js';

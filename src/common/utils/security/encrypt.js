@@ -1,8 +1,5 @@
 import { createCipheriv, randomBytes } from 'crypto';
-import {
-  ENCRYPTION_ALGO,
-  ENCRYPTION_KEY,
-} from '../../../../config/config.service.js';
+import { ENCRYPTION_ALGO, ENCRYPTION_KEY } from '../../../config/index.js';
 
 const KEY = Buffer.from(ENCRYPTION_KEY, 'hex');
 

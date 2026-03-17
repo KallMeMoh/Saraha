@@ -63,8 +63,6 @@ userSchema
   })
   .set(function (name) {
     const value = GenderEnum[name];
-    console.log(value);
-
     if (value !== undefined || value !== null) this.genderValue = value;
   });
 

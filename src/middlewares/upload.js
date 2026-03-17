@@ -1,22 +1,16 @@
 import multer from 'multer';
 import { randomUUID } from 'crypto';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { HttpError } from '../common/errors/HttpError.js';
-
-// so that the uploads are relative to the file instead of cwd
-// fileURLToPath(file:///home/.../file.js) -> '/home/.../file.js'
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { ROOT_DIR } from '../config/index.js';
 
 const avatarStorage = multer.diskStorage({
-  destination: (_, __, cb) =>
-    cb(null, join(__dirname, '../../uploads/avatars')),
+  destination: (_, __, cb) => cb(null, join(ROOT_DIR, 'uploads/avatars')),
   filename: (req, _, callback) => callback(null, `${req.userId}`),
 });
 
 const attachmentStorage = multer.diskStorage({
-  destination: (_, __, cb) =>
-    cb(null, join(__dirname, '../../uploads/attachments')),
+  destination: (_, __, cb) => cb(null, join(ROOT_DIR, 'uploads/attachments')),
   filename: (_, file, callback) =>
     callback(
       null,
