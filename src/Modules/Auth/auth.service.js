@@ -1,11 +1,8 @@
 import { compare, hash } from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { UserModel } from '../../DB/Models/User.model.js';
 import { CLIENT_ID, SALT_ROUNDS } from '../../../config/config.service.js';
 import DBRepo from '../../DB/db.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
-import { TokenType } from '../../common/enums/token.enum.js';
-import { getSignature } from '../../common/utils/security/signature.js';
 import { ProviderEnum } from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/sendOTPEmail.js';
 import { OTPModel } from '../../DB/Models/OTP.model.js';
