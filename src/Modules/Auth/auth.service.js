@@ -6,39 +6,40 @@ import DBRepo from '../../DB/db.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
 import { TokenType } from '../../common/enums/token.enum.js';
 import { getSignature } from '../../common/utils/security/signature.js';
-import {
-  GenderEnum,
-  ProviderEnum,
-  RoleEnum,
-} from '../../common/enums/user.enum.js';
+import { ProviderEnum } from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/sendOTPEmail.js';
 import { OTPModel } from '../../DB/Models/OTP.model.js';
 import { HttpError } from '../../common/errors/HttpError.js';
 import { OAuth2Client } from 'google-auth-library';
 
-export const signup = async (bodyData) => {
-  const { email } = bodyData;
-
+export const signup = async ({
+  username,
+  email,
+  gender,
+  birth_date,
+  phone,
+  password,
+}) => {
   // this hurts my soul more than it hurts yours
-  const existingUser = await DBRepo.findOne({
+  const userExists = await DBRepo.exists({
     Model: UserModel,
     filters: { email },
   });
 
-  if (existingUser) throw new HttpError(409, 'Email already exists');
+  if (userExists) throw new HttpError(409, 'User already exists');
 
-  let gender = GenderEnum[bodyData.gender];
-
-  let phone = undefined;
-  if (bodyData.phone) phone = encrypt(bodyData.phone);
-
-  const hashed_password = await hash(bodyData.password, SALT_ROUNDS);
+  const data = {
+    username,
+    email,
+    phone: encrypt(phone),
+    gender,
+    birth_date,
+    hashed_password: await hash(password, SALT_ROUNDS),
+    provider: ProviderEnum.System,
+  };
 
   // this one too
-  const user = await DBRepo.create({
-    Model: UserModel,
-    data: { ...bodyData, gender, phone, hashed_password },
-  });
+  const user = await DBRepo.create({ Model: UserModel, data });
 
   sendOTPEmail(user).catch((err) =>
     console.error('Failed to email OTP: ', err),
@@ -47,9 +48,7 @@ export const signup = async (bodyData) => {
   return user;
 };
 
-export const login = async (bodyData) => {
-  const { email, password } = bodyData;
-
+export const login = async ({ email, password }) => {
   // this hurts my soul more than it hurts yours
   let existingUser = await DBRepo.findOne({
     Model: UserModel,
@@ -58,24 +57,22 @@ export const login = async (bodyData) => {
 
   if (!existingUser) throw new HttpError(404, 'User does not exist');
 
-  let { _id, role, hashed_password } = existingUser.toObject({
-    getters: false,
-  });
-  const matchedPassword = await compare(password, hashed_password);
+  let { _id, roleValue, hashed_password } = existingUser;
 
+  const matchedPassword = await compare(password, hashed_password);
   if (!matchedPassword) throw new HttpError(401, 'Invalid credentials');
 
-  const { accessSignature, refreshSignature } = getSignature(role);
+  const { accessSignature, refreshSignature } = getSignature(roleValue);
 
   const accessToken = jwt.sign({ sub: _id }, accessSignature, {
-    audience: [role, TokenType.Access],
+    audience: [roleValue, TokenType.Access],
     expiresIn: '15m',
   });
 
   // shouldn't refresh token be an httpOnly
   // cookie and not sent in response body?
   const refreshToken = jwt.sign({ sub: _id }, refreshSignature, {
-    audience: [role, TokenType.Refresh],
+    audience: [roleValue, TokenType.Refresh],
     expiresIn: '1y',
   });
 
@@ -118,9 +115,9 @@ export const rotateToken = async (userId) => {
 
   if (!user) throw new HttpError(404, 'Account does not exist');
 
-  const { accessSignature } = getSignature(RoleEnum[user.role]);
+  const { accessSignature } = getSignature(user.roleValue);
   const newAccessToken = jwt.sign({ sub: userId }, accessSignature, {
-    audience: [RoleEnum[user.role], TokenType.Access],
+    audience: [user.roleValue, TokenType.Access],
     expiresIn: '15m',
   });
 

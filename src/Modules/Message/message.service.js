@@ -20,7 +20,7 @@ export const getUserMessages = async (userId) => {
 };
 
 export const createMessage = async (
-  authorId,
+  senderId,
   receiverId,
   content,
   attachments = [],
@@ -32,7 +32,7 @@ export const createMessage = async (
     }),
     DBRepo.exists({
       Model: UserModel,
-      filters: { _id: authorId },
+      filters: { _id: senderId },
     }),
   ]);
   if (!recipient?._id) throw new HttpError(404, "Recipient doesn't exist");

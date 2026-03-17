@@ -16,15 +16,10 @@ userRouter.get('/me', async (req, res) => {
   return res.status(200).json(user);
 });
 
-userRouter.get(
-  '/:id',
-  authorize(RoleEnum.Admin),
-  validate(IDSchema),
-  async (req, res) => {
-    const user = await UserService.getUserProfile(req.params.id);
-    return res.status(200).json(user);
-  },
-);
+userRouter.get('/:id', validate(IDSchema), async (req, res) => {
+  const user = await UserService.getUserProfile(req.params.id);
+  return res.status(200).json(user);
+});
 
 userRouter.put(
   '/avatar',

@@ -12,9 +12,19 @@ export const getUserProfile = async (userId) => {
 
   if (!user) throw new HttpError(404, "User doesn't exist");
 
-  const userObj = user.toObject({ getters: true });
-  delete userObj.id;
-  return { ...userObj, phone: decrypt(userObj.phone) };
+  const {
+    _id,
+    phone,
+    birth_date,
+    genderValue,
+    roleValue,
+    provider,
+    updatedAt,
+    __v,
+    ...userObj
+  } = user.toObject();
+
+  return { ...userObj, phone: decrypt(phone) };
 };
 
 export const updateAvatar = async (userId, path) => {

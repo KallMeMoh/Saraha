@@ -19,21 +19,19 @@ const userSchema = new Schema(
     hashed_password: {
       type: String,
       required: function () {
-        return this.provider === ProviderEnum.System;
+        return this.providerValue === ProviderEnum.System;
       },
     },
     phone: String, // is this supposed to be unique? never used Saraha before
     birth_date: Date,
-    gender: {
+    genderValue: {
       type: Number,
       enum: Object.values(GenderEnum),
-      get: (val) => Object.keys(GenderEnum)[val],
     },
-    role: {
+    roleValue: {
       type: Number,
       enum: Object.values(RoleEnum),
       default: RoleEnum.User,
-      get: (val) => Object.keys(RoleEnum)[val],
     },
     verified: {
       type: Boolean,
@@ -47,12 +45,45 @@ const userSchema = new Schema(
       type: Number,
       enum: Object.values(ProviderEnum),
       required: true,
-      get: (val) => Object.keys(ProviderEnum)[val],
     },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
+
+userSchema
+  .virtual('gender')
+  .get(function () {
+    return Object.keys(GenderEnum).find(
+      (key) => GenderEnum[key] === this.genderValue,
+    );
+  })
+  .set(function (name) {
+    const value = GenderEnum[name];
+    console.log(value);
+
+    if (value !== undefined || value !== null) this.genderValue = value;
+  });
+
+userSchema
+  .virtual('role')
+  .get(function () {
+    return Object.keys(RoleEnum).find(
+      (key) => RoleEnum[key] === this.roleValue,
+    );
+  })
+  .set(function (name) {
+    const value = RoleEnum[name];
+    if (value !== undefined || value !== null) this.roleValue = value;
+  });
+
+userSchema.virtual('age').get(function () {
+  if (!this.birth_date) return null;
+  const diff = Date.now() - this.birth_date.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+});
 
 export const UserModel = model('User', userSchema);
