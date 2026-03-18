@@ -39,3 +39,5 @@ export const SMTP_PASS = getRequiredEnvVar('SMTP_PASS');
 
 export const CLIENT_ID = getRequiredEnvVar('CLIENT_ID');
 // export const CLIENT_SECRET = getRequiredEnvVar('CLIENT_SECRET');
+
+export const REDIS_URI = getRequiredEnvVar('REDIS_URI');

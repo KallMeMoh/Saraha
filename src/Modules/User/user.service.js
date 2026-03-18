@@ -1,6 +1,6 @@
 import { HttpError } from '../../common/errors/HttpError.js';
 import { decrypt } from '../../common/utils/security/decrypt.js';
-import DBRepo from '../../DB/db.repository.js';
+import DBRepo from '../../DB/mongoose.repository.js';
 import { UserModel } from '../../DB/Models/User.model.js';
 
 export const getUserProfile = async (userId) => {

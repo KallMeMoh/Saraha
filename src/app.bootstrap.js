@@ -1,6 +1,6 @@
 import express from 'express';
 import { PORT, ROOT_DIR } from './config/index.js';
-import { connectDB } from './DB/connection.js';
+import { connectDB } from './DB/mongo.connection.js';
 import { authRouter } from './Modules/Auth/auth.controller.js';
 import { userRouter } from './Modules/User/user.controller.js';
 import { authenticate } from './middlewares/authentication.js';
@@ -10,12 +10,14 @@ import { HttpError } from './common/errors/HttpError.js';
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import cors from 'cors';
+import { connectRedis } from './DB/redis.connection.js';
 
 export default async function bootstrap() {
   const app = express();
 
   await Promise.all([
     connectDB(),
+    connectRedis(),
     mkdir(join(ROOT_DIR, '../uploads/attachments'), { recursive: true }),
     mkdir(join(ROOT_DIR, '../uploads/avatars'), { recursive: true }),
   ]);

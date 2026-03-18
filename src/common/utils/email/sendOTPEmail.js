@@ -1,7 +1,7 @@
 import { createTransport } from 'nodemailer';
 import { SMTP_PASS, SMTP_USER } from '../../../config/index.js';
 import { otpTemplate } from './OTPTemplate.js';
-import DBRepo from '../../../DB/db.repository.js';
+import DBRepo from '../../../DB/mongoose.repository.js';
 import { OTPModel } from '../../../DB/Models/OTP.model.js';
 import { randomInt } from 'crypto';
 

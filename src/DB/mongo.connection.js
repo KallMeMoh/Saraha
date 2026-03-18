@@ -1,5 +1,10 @@
-import { connect } from 'mongoose';
+import { connect, connection } from 'mongoose';
 import { MONGODB_URI } from '../config/index.js';
+
+connection.on('error', (err) => {
+  console.error(err);
+  process.exit(1);
+});
 
 export const connectDB = async () => {
   try {

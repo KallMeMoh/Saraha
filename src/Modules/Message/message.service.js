@@ -1,5 +1,5 @@
 import { HttpError } from '../../common/errors/HttpError.js';
-import DBRepo from '../../DB/db.repository.js';
+import DBRepo from '../../DB/mongoose.repository.js';
 import { MessageModel } from '../../DB/Models/Message.model.js';
 import { UserModel } from '../../DB/Models/User.model.js';
 
