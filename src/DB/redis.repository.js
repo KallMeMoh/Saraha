@@ -1,6 +1,8 @@
-export const set = (key, value, type = 'EX', value = 120) => {
+import { client } from './redis.connection.js';
+
+export const set = (key, value, type = 'EX', time = 120) => {
   return client.set(key, value, {
-    expiration: { type, value },
+    expiration: { type, value: time },
   });
 };
 
@@ -8,8 +10,8 @@ export const get = (key) => {
   return client.get(key);
 };
 
-export const mget = (key) => {
-  return client.mget(key);
+export const mget = (keys) => {
+  return client.mget(keys);
 };
 
 export const exists = (key) => {
@@ -29,5 +31,5 @@ export const del = (key) => {
 };
 
 export const update = (key, value) => {
-  if (client.exists(key)) return client.set(key, value);
+  return client.set(key, value, { condition: 'XX', expiration: 'KEEPTTL' });
 };
