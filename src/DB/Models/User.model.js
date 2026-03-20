@@ -46,6 +46,10 @@ const userSchema = new Schema(
       enum: Object.values(ProviderEnum),
       required: true,
     },
+    visits: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

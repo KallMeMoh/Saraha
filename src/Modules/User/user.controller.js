@@ -6,15 +6,11 @@ import { uploadAvatar } from '../../middlewares/upload.js';
 import { validate } from '../../middlewares/validation.js';
 import { IDSchema } from '../../common/validation/id.schema.js';
 import { avatarSchema } from '../../common/validation/avatar.schema.js';
+import { authenticate } from '../../middlewares/authentication.js';
 
 export const userRouter = Router();
 
 // and this as well! :)
-
-userRouter.get('/me', async (req, res) => {
-  const user = await UserService.getUserProfile(req.userId);
-  return res.status(200).json(user);
-});
 
 userRouter.get('/:id', validate(IDSchema), async (req, res) => {
   const user = await UserService.getUserProfile(req.params.id);
@@ -23,6 +19,7 @@ userRouter.get('/:id', validate(IDSchema), async (req, res) => {
 
 userRouter.put(
   '/avatar',
+  authenticate(),
   uploadAvatar.fields([{ name: 'avatar', maxCount: 1 }]),
   validate(avatarSchema),
   async (req, res) => {
@@ -31,7 +28,7 @@ userRouter.put(
   },
 );
 
-userRouter.delete('/', async (req, res) => {
+userRouter.delete('/', authenticate(), async (req, res) => {
   await UserService.deleteAccount(req.userId);
   return res.status(200).json({ message: 'Account deleted successfully' });
 });
@@ -40,6 +37,7 @@ userRouter.delete(
   '/:id',
   authorize(RoleEnum.Admin),
   validate(IDSchema),
+  authenticate(),
   async (req, res) => {
     await UserService.deleteAccount(req.params.id);
     return res.status(200).json({ message: 'Account deleted successfully' });

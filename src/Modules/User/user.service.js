@@ -2,6 +2,7 @@ import { HttpError } from '../../common/errors/HttpError.js';
 import { decrypt } from '../../common/utils/security/decrypt.js';
 import DBRepo from '../../DB/mongoose.repository.js';
 import { UserModel } from '../../DB/Models/User.model.js';
+import { RoleEnum } from '../../common/enums/user.enum.js';
 
 export const getUserProfile = async (userId) => {
   const user = await DBRepo.findOne({
@@ -12,6 +13,9 @@ export const getUserProfile = async (userId) => {
 
   if (!user) throw new HttpError(404, "User doesn't exist");
 
+  user.visits++;
+  await user.save();
+
   const {
     _id,
     phone,
@@ -21,10 +25,16 @@ export const getUserProfile = async (userId) => {
     provider,
     updatedAt,
     __v,
+    visits,
     ...userObj
   } = user.toObject();
 
-  return { ...userObj, phone: decrypt(phone) };
+  return {
+    ...userObj,
+    ...(user.roleValue === RoleEnum.Admin
+      ? { visits, phone: decrypt(phone) }
+      : {}),
+  };
 };
 
 export const updateAvatar = async (userId, path) => {
