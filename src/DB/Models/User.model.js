@@ -41,6 +41,10 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    covers: {
+      type: [String],
+      default: [],
+    },
     provider: {
       type: Number,
       enum: Object.values(ProviderEnum),

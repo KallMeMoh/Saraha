@@ -2,11 +2,12 @@ import { Router } from 'express';
 import * as UserService from './user.service.js';
 import { authorize } from '../../middlewares/authorization.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
-import { uploadAvatar } from '../../middlewares/upload.js';
+import { uploadAvatar, uploadCover } from '../../middlewares/upload.js';
 import { validate } from '../../middlewares/validation.js';
 import { IDSchema } from '../../common/validation/id.schema.js';
 import { avatarSchema } from '../../common/validation/avatar.schema.js';
 import { authenticate } from '../../middlewares/authentication.js';
+import { coverSchema } from '../../common/validation/cover.schema.js';
 
 export const userRouter = Router();
 
@@ -25,6 +26,17 @@ userRouter.put(
   async (req, res) => {
     await UserService.updateAvatar(req.userId, req.files.avatar[0].filename);
     return res.status(200).json({ message: 'Avatar updated successfully' });
+  },
+);
+
+userRouter.patch(
+  '/cover',
+  authenticate(),
+  uploadCover.fields([{ name: 'cover', maxCount: 2 }]),
+  validate(coverSchema),
+  async (req, res) => {
+    await UserService.updateCover(req.userId, req.files.cover);
+    return res.status(200).json({ message: 'Cover updated successfully' });
   },
 );
 

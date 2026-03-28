@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { ln, file } from './fields.js';
 
-export const avatarSchema = Joi.object({
+export const coverSchema = Joi.object({
   body: Joi.object({}).unknown(true),
 
   query: Joi.object({ ln }),
@@ -9,10 +9,10 @@ export const avatarSchema = Joi.object({
   params: Joi.object({}),
 
   files: Joi.object({
-    avatar: Joi.array().min(1).items(file).required(),
+    cover: Joi.array().min(1).items(file).required(),
   })
     .required()
     .messages({
-      'any.required': 'Please upload profile picture',
+      'any.required': 'Please upload at least 1 cover picture',
     }),
 });

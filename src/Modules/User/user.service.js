@@ -48,6 +48,30 @@ export const updateAvatar = async (userId, path) => {
   if (!modifiedCount) throw new HttpError(400, "Couldn't update avatar");
 };
 
+export const updateCover = async (userId, paths) => {
+  console.log(paths);
+  const user = await DBRepo.findOne({
+    Model: UserModel,
+    filters: { _id: userId },
+  });
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (user.covers.length + paths.length > 2)
+    throw new HttpError(422, 'Invalid number of cover images');
+
+  await DBRepo.updateOne({
+    Model: UserModel,
+    filters: { _id: userId },
+    updates: {
+      $push: {
+        covers: {
+          $each: paths.map((file) => `uploads/covers/${file.filename}`),
+        },
+      },
+    },
+  });
+};
+
 export const deleteAccount = async (userId) => {
   const { deletedCount } = await DBRepo.deleteOne({
     Model: UserModel,
