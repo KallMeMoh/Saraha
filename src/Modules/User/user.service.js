@@ -41,7 +41,19 @@ export const updateAvatar = async (userId, path) => {
   const { matchedCount, modifiedCount } = await DBRepo.updateOne({
     Model: UserModel,
     filters: { _id: userId },
-    updates: { $set: { avatar: `uploads/avatars/${path}` } },
+    updates: [
+      {
+        $set: {
+          gallery: {
+            $concatArrays: ['$gallery', ['$avatar']],
+          },
+          avatar: `uploads/avatars/${path}`,
+        },
+      },
+    ],
+    options: {
+      updatePipeline: true,
+    },
   });
 
   if (!matchedCount) throw new HttpError(404, 'Account does not exist');
@@ -49,7 +61,6 @@ export const updateAvatar = async (userId, path) => {
 };
 
 export const updateCover = async (userId, paths) => {
-  console.log(paths);
   const user = await DBRepo.findOne({
     Model: UserModel,
     filters: { _id: userId },

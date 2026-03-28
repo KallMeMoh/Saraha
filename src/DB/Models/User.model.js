@@ -45,6 +45,10 @@ const userSchema = new Schema(
       type: [String],
       default: [],
     },
+    gallery: {
+      type: [String],
+      default: [],
+    },
     provider: {
       type: Number,
       enum: Object.values(ProviderEnum),
