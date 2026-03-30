@@ -1,7 +1,7 @@
 import { compare, hash } from 'bcrypt';
 import { UserModel } from '../../DB/Models/User.model.js';
 import { CLIENT_ID, SALT_ROUNDS } from '../../config/index.js';
-import DBRepo from '../../DB/mongoose.repository.js';
+import DatabaseRepo from '../../DB/mongoose.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
 import { ProviderEnum } from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/sendOTPEmail.js';
@@ -19,7 +19,7 @@ export const signup = async ({
   password,
 }) => {
   // this hurts my soul more than it hurts yours
-  const userExists = await DBRepo.exists({
+  const userExists = await DatabaseRepo.exists({
     Model: UserModel,
     filters: { email },
   });
@@ -37,7 +37,7 @@ export const signup = async ({
   };
 
   // this one too
-  const user = await DBRepo.create({ Model: UserModel, data });
+  const user = await DatabaseRepo.create({ Model: UserModel, data });
 
   sendOTPEmail(user).catch((err) =>
     console.error('Failed to email OTP: ', err),
@@ -48,7 +48,7 @@ export const signup = async ({
 
 export const login = async ({ email, password }) => {
   // this hurts my soul more than it hurts yours
-  let existingUser = await DBRepo.findOne({
+  let existingUser = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: { email },
   });
@@ -72,14 +72,14 @@ export const googleSignup = async (idToken) => {
 
   const { given_name, email, picture, email_verified } = ticket.getPayload();
 
-  const user = await DBRepo.findOne({
+  const user = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: { email },
   });
 
   if (user) throw new HttpError(409, 'Account already exists');
 
-  await DBRepo.create({
+  await DatabaseRepo.create({
     Model: UserModel,
     data: {
       username: given_name,
@@ -99,7 +99,7 @@ export const googleLogin = async () => {
 
   const { email } = ticket.getPayload();
 
-  const user = await DBRepo.findOne({
+  const user = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: {
       email,
@@ -113,7 +113,7 @@ export const googleLogin = async () => {
 };
 
 export const rotateToken = async (userId) => {
-  const user = await DBRepo.findOne({
+  const user = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: { _id: userId },
   });
@@ -130,8 +130,8 @@ export const rotateToken = async (userId) => {
 
 export const resendOTP = async (userId) => {
   const [user, otp] = await Promise.all([
-    DBRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
-    DBRepo.exists({ Model: OTPModel, filters: { authorId: userId } }),
+    DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
+    DatabaseRepo.exists({ Model: OTPModel, filters: { authorId: userId } }),
   ]);
 
   if (!user) throw new HttpError(404, 'Account does not exist');
@@ -143,8 +143,8 @@ export const resendOTP = async (userId) => {
 
 export const verifyOTP = async (userId, code) => {
   const [user, otp] = await Promise.all([
-    DBRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
-    DBRepo.findOne({
+    DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
+    DatabaseRepo.findOne({
       Model: OTPModel,
       filters: { authorId: userId, code },
     }),

@@ -33,3 +33,14 @@ export const del = (key) => {
 export const update = (key, value) => {
   return client.set(key, value, { condition: 'XX', expiration: 'KEEPTTL' });
 };
+
+const RedisRepo = {
+  findOne,
+  find,
+  create,
+  exists,
+  deleteOne,
+  updateOne,
+};
+
+export default RedisRepo;

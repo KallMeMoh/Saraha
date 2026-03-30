@@ -42,7 +42,7 @@ const updateOne = async ({ Model, filters, updates, options = {} }) => {
   return await Model.updateOne(filters, updates, options);
 };
 
-export default {
+const DatabaseRepo = {
   findOne,
   find,
   create,
@@ -50,3 +50,5 @@ export default {
   deleteOne,
   updateOne,
 };
+
+export default DatabaseRepo;

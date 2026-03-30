@@ -1,17 +1,17 @@
 import { HttpError } from '../../common/errors/HttpError.js';
-import DBRepo from '../../DB/mongoose.repository.js';
+import DatabaseRepo from '../../DB/mongoose.repository.js';
 import { MessageModel } from '../../DB/Models/Message.model.js';
 import { UserModel } from '../../DB/Models/User.model.js';
 
 export const getUserMessages = async (userId) => {
-  const exist = await DBRepo.exists({
+  const exist = await DatabaseRepo.exists({
     Model: UserModel,
     filters: { _id: userId },
   });
   if (!exist) throw new HttpError(404, 'Account does not exist');
 
   const messages =
-    (await DBRepo.find({
+    (await DatabaseRepo.find({
       Model: MessageModel,
       filters: { senderId: exist._id },
     })) || [];
@@ -26,11 +26,11 @@ export const createMessage = async (
   attachments = [],
 ) => {
   const [recipient, sender] = await Promise.all([
-    DBRepo.exists({
+    DatabaseRepo.exists({
       Model: UserModel,
       filters: { _id: receiverId },
     }),
-    DBRepo.exists({
+    DatabaseRepo.exists({
       Model: UserModel,
       filters: { _id: senderId },
     }),
@@ -39,7 +39,7 @@ export const createMessage = async (
   if (sender && recipient._id.equals(sender._id))
     throw new HttpError(400, 'Sending a message to yourself?');
 
-  const message = await DBRepo.create({
+  const message = await DatabaseRepo.create({
     Model: MessageModel,
     data: {
       receiverId: recipient._id,
@@ -55,7 +55,7 @@ export const createMessage = async (
 };
 
 export const deleteMessage = async (userId, messageId) => {
-  const { deletedCount } = await DBRepo.deleteOne({
+  const { deletedCount } = await DatabaseRepo.deleteOne({
     Model: MessageModel,
     filters: {
       _id: messageId,

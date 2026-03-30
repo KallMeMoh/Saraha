@@ -1,7 +1,7 @@
 import { createTransport } from 'nodemailer';
 import { SMTP_PASS, SMTP_USER } from '../../../config/index.js';
 import { otpTemplate } from './OTPTemplate.js';
-import DBRepo from '../../../DB/mongoose.repository.js';
+import DatabaseRepo from '../../../DB/mongoose.repository.js';
 import { OTPModel } from '../../../DB/Models/OTP.model.js';
 import { randomInt } from 'crypto';
 
@@ -17,7 +17,8 @@ const transporter = createTransport({
 
 export const sendOTPEmail = async (user) => {
   const code = randomInt(100_000, 999_999).toString();
-  await DBRepo.create({
+
+  await DatabaseRepo.create({
     Model: OTPModel,
     data: {
       code,

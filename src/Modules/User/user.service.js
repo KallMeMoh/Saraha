@@ -1,6 +1,6 @@
 import { HttpError } from '../../common/errors/HttpError.js';
 import { decrypt } from '../../common/utils/security/decrypt.js';
-import DBRepo from '../../DB/mongoose.repository.js';
+import DatabaseRepo from '../../DB/mongoose.repository.js';
 import { UserModel } from '../../DB/Models/User.model.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
 import { unlink } from 'fs/promises';
@@ -8,7 +8,7 @@ import { join } from 'path';
 import { ROOT_DIR } from '../../config/index.js';
 
 export const getUserProfile = async (userId) => {
-  const user = await DBRepo.findOne({
+  const user = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: { _id: userId },
     select: '-hashed_password',
@@ -41,7 +41,7 @@ export const getUserProfile = async (userId) => {
 };
 
 export const updateAvatar = async (userId, path) => {
-  const { matchedCount, modifiedCount } = await DBRepo.updateOne({
+  const { matchedCount, modifiedCount } = await DatabaseRepo.updateOne({
     Model: UserModel,
     filters: { _id: userId },
     updates: [
@@ -64,7 +64,7 @@ export const updateAvatar = async (userId, path) => {
 };
 
 export const deleteAvatar = async (userId) => {
-  const user = await DBRepo.findOne({
+  const user = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: { _id: userId },
   });
@@ -81,7 +81,7 @@ export const deleteAvatar = async (userId) => {
 };
 
 export const updateCover = async (userId, paths) => {
-  const user = await DBRepo.findOne({
+  const user = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: { _id: userId },
   });
@@ -90,7 +90,7 @@ export const updateCover = async (userId, paths) => {
   if (user.covers.length + paths.length > 2)
     throw new HttpError(422, 'Invalid number of cover images');
 
-  await DBRepo.updateOne({
+  await DatabaseRepo.updateOne({
     Model: UserModel,
     filters: { _id: userId },
     updates: {
@@ -104,7 +104,7 @@ export const updateCover = async (userId, paths) => {
 };
 
 export const deleteAccount = async (userId) => {
-  const { deletedCount } = await DBRepo.deleteOne({
+  const { deletedCount } = await DatabaseRepo.deleteOne({
     Model: UserModel,
     filters: { _id: userId },
   });
