@@ -5,10 +5,10 @@ import DatabaseRepo from '../../DB/mongoose.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
 import { ProviderEnum } from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/sendOTPEmail.js';
-import { OTPModel } from '../../DB/Models/OTP.model.js';
 import { HttpError } from '../../common/errors/HttpError.js';
 import { OAuth2Client } from 'google-auth-library';
 import { generateTokens } from '../../common/utils/security/token.js';
+import RedisRepo from '../../DB/redis.repository.js';
 
 export const signup = async ({
   username,
@@ -131,7 +131,7 @@ export const rotateToken = async (userId) => {
 export const resendOTP = async (userId) => {
   const [user, otp] = await Promise.all([
     DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
-    DatabaseRepo.exists({ Model: OTPModel, filters: { authorId: userId } }),
+    RedisRepo.exists(`otp:user:${userId}`),
   ]);
 
   if (!user) throw new HttpError(404, 'Account does not exist');
@@ -144,14 +144,13 @@ export const resendOTP = async (userId) => {
 export const verifyOTP = async (userId, code) => {
   const [user, otp] = await Promise.all([
     DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
-    DatabaseRepo.findOne({
-      Model: OTPModel,
-      filters: { authorId: userId, code },
-    }),
+    RedisRepo.get(`otp:user:${userId}`),
   ]);
 
-  if (!user || !otp) throw new HttpError(401, 'Invalid or expired OTP');
   if (user.verified) throw new HttpError(409, 'Account already verified');
+  if (!user || !otp || otp !== code)
+    throw new HttpError(401, 'Invalid Code, please try again later');
+  // todo: implement temporal block after 5 tries
 
   await otp.deleteOne();
 

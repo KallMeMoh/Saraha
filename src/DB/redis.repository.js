@@ -1,9 +1,7 @@
 import { client } from './redis.connection.js';
 
-export const set = (key, value, type = 'EX', time = 120) => {
-  return client.set(key, value, {
-    expiration: { type, value: time },
-  });
+export const set = (key, value, options) => {
+  return client.set(key, value, options);
 };
 
 export const get = (key) => {
@@ -34,13 +32,20 @@ export const update = (key, value) => {
   return client.set(key, value, { condition: 'XX', expiration: 'KEEPTTL' });
 };
 
+export const incr = (key) => {
+  return client.incr(key);
+};
+
 const RedisRepo = {
-  findOne,
-  find,
-  create,
+  set,
+  get,
+  mget,
   exists,
-  deleteOne,
-  updateOne,
+  ttl,
+  persist,
+  del,
+  update,
+  incr,
 };
 
 export default RedisRepo;
