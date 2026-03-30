@@ -57,8 +57,16 @@ export const login = async ({ email, password }) => {
 
   let { _id, roleValue, hashed_password } = existingUser;
 
+  const tries = await RedisRepo.get(`login:user:${_id}`);
+  if (tries && tries > 5)
+    throw new HttpError(401, 'Account temporarily banned, try again later');
+
   const matchedPassword = await compare(password, hashed_password);
-  if (!matchedPassword) throw new HttpError(401, 'Invalid credentials');
+  if (!matchedPassword) {
+    const loginCounter = await RedisRepo.incr(`login:user:${_id}`);
+    if (loginCounter === 1) RedisRepo.expire(`login:user:${_id}`, 1800);
+    throw new HttpError(401, 'Invalid credentials');
+  }
 
   return generateTokens(_id, roleValue);
 };

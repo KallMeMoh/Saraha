@@ -36,6 +36,10 @@ export const incr = (key) => {
   return client.incr(key);
 };
 
+export const expire = (key, seconds) => {
+  return client.expire(key, seconds);
+};
+
 const RedisRepo = {
   set,
   get,
@@ -46,6 +50,7 @@ const RedisRepo = {
   del,
   update,
   incr,
+  expire,
 };
 
 export default RedisRepo;
