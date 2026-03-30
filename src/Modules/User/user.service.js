@@ -3,6 +3,9 @@ import { decrypt } from '../../common/utils/security/decrypt.js';
 import DBRepo from '../../DB/mongoose.repository.js';
 import { UserModel } from '../../DB/Models/User.model.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
+import { ROOT_DIR } from '../../config/index.js';
 
 export const getUserProfile = async (userId) => {
   const user = await DBRepo.findOne({
@@ -58,6 +61,23 @@ export const updateAvatar = async (userId, path) => {
 
   if (!matchedCount) throw new HttpError(404, 'Account does not exist');
   if (!modifiedCount) throw new HttpError(400, "Couldn't update avatar");
+};
+
+export const deleteAvatar = async (userId) => {
+  const user = await DBRepo.findOne({
+    Model: UserModel,
+    filters: { _id: userId },
+  });
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (!user.avatar) return;
+
+  const avatarPath = join(ROOT_DIR, user.avatar);
+
+  user.avatar = null;
+  await user.save();
+
+  await unlink(avatarPath);
 };
 
 export const updateCover = async (userId, paths) => {

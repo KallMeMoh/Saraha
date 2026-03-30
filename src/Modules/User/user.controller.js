@@ -29,6 +29,11 @@ userRouter.put(
   },
 );
 
+userRouter.delete('/avatar', authenticate(), async (req, res) => {
+  await UserService.deleteAvatar(req.userId);
+  return res.status(200).json({ message: 'Avatar removed successfully' });
+});
+
 userRouter.patch(
   '/cover',
   authenticate(),
