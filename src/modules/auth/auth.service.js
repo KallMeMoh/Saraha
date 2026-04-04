@@ -1,0 +1,205 @@
+import { compare, hash } from 'bcrypt';
+import { UserModel } from '../../database/models/User.model.js';
+import {
+  CLIENT_ID,
+  PENDING_AUTH_SIGNATURE,
+  SALT_ROUNDS,
+} from '../../config/index.js';
+import DatabaseRepo from '../../database/mongoose.repository.js';
+import { encrypt } from '../../common/utils/security/encrypt.js';
+import { ProviderEnum } from '../../common/enums/user.enum.js';
+import { sendOTPEmail } from '../../common/utils/email/send-otp-email.js';
+import { HttpError } from '../../common/errors/HttpError.js';
+import { OAuth2Client } from 'google-auth-library';
+import { generateTokens } from '../../common/utils/security/token.js';
+import RedisRepo from '../../database/redis.repository.js';
+import { TokenType } from '../../common/enums/token.enum.js';
+import jwt from 'jsonwebtoken';
+
+export const signup = async ({
+  username,
+  email,
+  gender,
+  birth_date,
+  phone,
+  password,
+}) => {
+  // this hurts my soul more than it hurts yours
+  const userExists = await DatabaseRepo.exists({
+    Model: UserModel,
+    filters: { email },
+  });
+
+  if (userExists) throw new HttpError(409, 'User already exists');
+
+  const data = {
+    username,
+    email,
+    phone: encrypt(phone),
+    gender,
+    birth_date,
+    hashed_password: await hash(password, SALT_ROUNDS),
+    provider: ProviderEnum.System,
+  };
+
+  // this one too
+  const user = await DatabaseRepo.create({ Model: UserModel, data });
+
+  sendOTPEmail(
+    `otp:signup:${user._id}`,
+    user,
+    'Verify your SarahaClone account',
+    'complete your registration',
+  ).catch((err) => console.error('Failed to email OTP: ', err));
+
+  return user;
+};
+
+export const login = async ({ email, password }) => {
+  // this hurts my soul more than it hurts yours
+  let user = await DatabaseRepo.findOne({
+    Model: UserModel,
+    filters: { email },
+  });
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+
+  const tries = await RedisRepo.get(`login:user:${user._id}`);
+  if (tries && tries > 5)
+    throw new HttpError(401, 'Account temporarily banned, try again later');
+
+  const matchedPassword = await compare(password, user.hashed_password);
+  if (!matchedPassword) {
+    const loginCounter = await RedisRepo.incr(`login:user:${user._id}`);
+    if (loginCounter === 1) RedisRepo.expire(`login:user:${user._id}`, 1800);
+    throw new HttpError(401, 'Invalid credentials');
+  }
+
+  if (user.has2FA) {
+    const pendingAuthToken = jwt.sign(
+      { sub: user._id },
+      PENDING_AUTH_SIGNATURE,
+      {
+        audience: [TokenType.PendingAuth],
+        expiresIn: '10m',
+      },
+    );
+
+    await sendOTPEmail(
+      `otp:login:${user._id}`,
+      user,
+      'Your SarahaClone login confirmation code',
+      'confirm your login attempt',
+    );
+
+    return {
+      requires2FA: true,
+      pendingAuthToken,
+    };
+  } else return generateTokens(user._id, user.roleValue);
+};
+
+export const confirmLogin = async ({ code, pendingAuthToken }) => {
+  const { sub = undefined } = jwt.verify(
+    pendingAuthToken,
+    PENDING_AUTH_SIGNATURE,
+  );
+
+  const [user, otp] = await Promise.all([
+    DatabaseRepo.findOne({
+      Model: UserModel,
+      filters: { _id: sub },
+    }),
+    RedisRepo.get(`otp:login:${sub}`),
+  ]);
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (!otp) throw new HttpError(404, 'OTP Expired, please login again');
+
+  const tries = await RedisRepo.get(`login:user:${user._id}`);
+  if (tries && tries > 5)
+    throw new HttpError(401, 'Account temporarily banned, try again later');
+
+  if (otp !== code) {
+    const loginCounter = await RedisRepo.incr(`login:user:${user._id}`);
+    if (loginCounter === 1) RedisRepo.expire(`login:user:${user._id}`, 1800);
+    throw new HttpError(401, 'Invalid credentials');
+  }
+
+  return generateTokens(user._id, user.roleValue);
+};
+
+const client = new OAuth2Client();
+export const googleSignup = async (idToken) => {
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: CLIENT_ID,
+  });
+
+  const { given_name, email, picture, email_verified } = ticket.getPayload();
+
+  const user = await DatabaseRepo.findOne({
+    Model: UserModel,
+    filters: { email },
+  });
+
+  if (user) throw new HttpError(409, 'Account already exists');
+
+  await DatabaseRepo.create({
+    Model: UserModel,
+    data: {
+      username: given_name,
+      email,
+      verified: email_verified,
+      avatar: picture,
+      provider: ProviderEnum.Google,
+    },
+  });
+};
+
+export const googleLogin = async () => {
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: CLIENT_ID,
+  });
+
+  const { email } = ticket.getPayload();
+
+  const user = await DatabaseRepo.findOne({
+    Model: UserModel,
+    filters: {
+      email,
+      provider: ProviderEnum.Google,
+    },
+  });
+
+  if (!user) throw new HttpError(401, 'Invalid credentials');
+
+  return generateTokens(user._id, user.roleValue);
+};
+
+export const rotateToken = async (userId, jti) => {
+  const user = await DatabaseRepo.findOne({
+    Model: UserModel,
+    filters: { _id: userId },
+  });
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+
+  const { accessToken: newAccessToken } = generateTokens(
+    user._id,
+    user.roleValue,
+    jti,
+  );
+
+  return newAccessToken;
+};
+
+export const resetPassword = async (userId) => {};
+
+export const verifyResetPassword = async (userId) => {};
+
+export const blacklistToken = async (jti) => {
+  const ttl = 365 * 24 * 60 * 60;
+  await RedisRepo.set(`jwt:blacklist:${jti}`, '1', 'EX', ttl);
+};

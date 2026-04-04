@@ -1,16 +1,16 @@
 import express from 'express';
 import { PORT, ROOT_DIR } from './config/index.js';
-import { connectDB } from './DB/mongo.connection.js';
-import { authRouter } from './Modules/Auth/auth.controller.js';
-import { userRouter } from './Modules/User/user.controller.js';
+import { connectDB } from './database/mongo.connection.js';
+import { authRouter } from './modules/auth/auth.controller.js';
+import { userRouter } from './modules/user/user.controller.js';
 import { authenticate } from './middlewares/authentication.js';
-import { messageRouter } from './Modules/Message/message.controller.js';
+import { messageRouter } from './modules/message/message.controller.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { HttpError } from './common/errors/HttpError.js';
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import cors from 'cors';
-import { connectRedis } from './DB/redis.connection.js';
+import { connectRedis } from './database/redis.connection.js';
 
 export default async function bootstrap() {
   const app = express();

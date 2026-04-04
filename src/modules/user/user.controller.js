@@ -8,6 +8,7 @@ import { IDSchema } from '../../common/validation/id.schema.js';
 import { avatarSchema } from '../../common/validation/avatar.schema.js';
 import { authenticate } from '../../middlewares/authentication.js';
 import { coverSchema } from '../../common/validation/cover.schema.js';
+import { OTPSchema } from '../../common/validation/otp.schema.js';
 
 export const userRouter = Router();
 
@@ -17,6 +18,45 @@ userRouter.get('/:id', validate(IDSchema), async (req, res) => {
   const user = await UserService.getUserProfile(req.params.id);
   return res.status(200).json(user);
 });
+
+// Note to self: These 2 are for enabling 2FA service
+userRouter.post('/2fa/enable', authenticate(), async (req, res) => {
+  await UserService.enable2FA(req.userId);
+  return res.status(200).json({ message: 'Please check your inbox' });
+});
+
+userRouter.post(
+  '/2fa/verify',
+  authenticate(),
+  validate(OTPSchema),
+  async (req, res) => {
+    await UserService.activate2FA(req.userId, req.body?.otp);
+    return res
+      .status(200)
+      .json({ message: 'Account has been verified successfully' });
+  },
+);
+
+// Note to self: These 2 are for flipping the verified account flag (user.verified)
+userRouter.post('/verification/resend', async (req, res) => {
+  await UserService.requestVerificationOTP(req.userId);
+  return res.status(200).json({ message: 'OTP code emailed successfully' });
+});
+
+userRouter.post('/verify', validate(OTPSchema), async (req, res) => {
+  await UserService.verifyOTP(req.userId, req.body?.otp);
+  return res
+    .status(200)
+    .json({ message: 'Account has been verified successfully' });
+});
+
+userRouter.post(
+  '/password/change',
+  // validate(Schema),
+  async (req, res) => {
+    // changing authed user password
+  },
+);
 
 userRouter.put(
   '/avatar',

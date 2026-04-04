@@ -5,7 +5,8 @@ import { TokenType } from '../../common/enums/token.enum.js';
 import { validate } from '../../middlewares/validation.js';
 import { loginSchema } from '../../common/validation/login.schema.js';
 import { signupSchema } from '../../common/validation/signup.schema.js';
-import { OTPSchema } from '../../common/validation/otp.schema.js';
+import { confirmationSchema } from '../../common/validation/confirmation.schema.js';
+import { resetPasswordSchema } from '../../common/validation/reset-passowrd.shcmea.js';
 
 export const authRouter = Router();
 
@@ -17,9 +18,25 @@ authRouter.post('/signup', validate(signupSchema), async (req, res) => {
 });
 
 authRouter.post('/login', validate(loginSchema), async (req, res) => {
-  const tokens = await AuthService.login(req.body);
-  return res.status(200).json({ message: 'Logged in successfully', ...tokens });
+  const credentials = await AuthService.login(req.body);
+  return res.status(200).json({
+    message: credentials.requires2FA
+      ? 'Please provide your 2FA OTP'
+      : 'Logged in successfully',
+    credentials,
+  });
 });
+
+authRouter.post(
+  '/login/confirm',
+  validate(confirmationSchema),
+  async (req, res) => {
+    const credentials = await AuthService.confirmLogin(req.body);
+    return res
+      .status(200)
+      .json({ message: 'Logged in successfully', credentials });
+  },
+);
 
 authRouter.post('/oauth/signup/google', async (req, res) => {
   await AuthService.googleSignup(req.body.idToken);
@@ -35,26 +52,27 @@ authRouter.post(
   '/token/refresh',
   authenticate(true, TokenType.Refresh),
   async (req, res) => {
-    const accessToken = await AuthService.rotateToken(req.userId);
+    const accessToken = await AuthService.rotateToken(req.userId, req.tokenId);
     return res
       .status(200)
       .json({ message: 'Token refreshed successfully', accessToken });
   },
 );
 
-authRouter.post('/otp/resend', authenticate(), async (req, res) => {
-  await AuthService.resendOTP(req.userId);
-  return res.status(200).json({ message: 'OTP code emailed successfully' });
+authRouter.post('/password/forget', async () => {
+  await AuthService.resetPassword(userId);
+  return res.status(200).json({ message: 'Please check your inbox' });
 });
 
 authRouter.post(
-  '/otp/verify',
-  validate(OTPSchema),
-  authenticate(),
+  '/password/reset/:jwt',
+  validate(resetPasswordSchema),
   async (req, res) => {
-    await AuthService.verifyOTP(req.userId, req.body?.otp);
-    return res
-      .status(200)
-      .json({ message: 'Account has been verified successfully' });
+    await AuthService.verifyResetPassword(req.userId, req.params.jwt);
   },
 );
+
+authRouter.post('/logout', authenticate(), async (req, res) => {
+  await AuthService.blacklistToken(req.tokenId);
+  return res.status(200).json({ message: 'Token revoked successfully' });
+});

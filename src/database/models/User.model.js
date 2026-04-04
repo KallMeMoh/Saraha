@@ -49,6 +49,10 @@ const userSchema = new Schema(
       type: [String],
       default: [],
     },
+    has2FA: {
+      type: Boolean,
+      default: false,
+    },
     provider: {
       type: Number,
       enum: Object.values(ProviderEnum),

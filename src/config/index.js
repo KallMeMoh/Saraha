@@ -34,6 +34,8 @@ export const ADMIN_REFRESH_SIGNATURE = getRequiredEnvVar(
   'ADMIN_REFRESH_SECRET',
 );
 
+export const PENDING_AUTH_SIGNATURE = getRequiredEnvVar('PENDING_AUTH_SECRET');
+
 export const SMTP_USER = getRequiredEnvVar('SMTP_USER');
 export const SMTP_PASS = getRequiredEnvVar('SMTP_PASS');
 

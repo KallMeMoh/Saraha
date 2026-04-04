@@ -108,6 +108,14 @@ export const otp = Joi.string()
     'any.required': 'Missing OTP code',
   });
 
+export const token = Joi.string()
+  .pattern(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/)
+  .required()
+  .messages({
+    'string.pattern': 'Malformed token',
+    'any.required': 'Missing token',
+  });
+
 export const ln = Joi.string()
   .trim()
   .valid('en') // .valid(...Object,keys(LocalityEnum)) or something like that?

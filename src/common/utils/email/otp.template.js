@@ -1,5 +1,4 @@
-// asked claude for a good looking template
-export const otpTemplate = (otp) => `
+export const otpTemplate = (otp, reason = 'verify your identity') => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,9 +23,9 @@ export const otpTemplate = (otp) => `
           <!-- Body -->
           <tr>
             <td style="padding:40px 48px;">
-              <p style="margin:0 0 8px;font-size:13px;color:#888;letter-spacing:1px;text-transform:uppercase;">Verify your account</p>
+              <p style="margin:0 0 8px;font-size:13px;color:#888;letter-spacing:1px;text-transform:uppercase;">One-Time Code</p>
               <p style="margin:0 0 32px;font-size:16px;color:#ccc;line-height:1.6;">
-                Use the code below to complete your registration. It expires in <span style="color:#f5f0e8;">5 minutes</span>.
+                Use the code below to ${reason}. It expires in <span style="color:#f5f0e8;">5 minutes</span>.
               </p>
 
               <!-- OTP Box -->
@@ -39,7 +38,7 @@ export const otpTemplate = (otp) => `
               </table>
 
               <p style="margin:32px 0 0;font-size:13px;color:#555;line-height:1.6;">
-                If you didn't create a SarahaClone account, you can safely ignore this email.
+                If you didn't request this code, you can safely ignore this email.
               </p>
             </td>
           </tr>
