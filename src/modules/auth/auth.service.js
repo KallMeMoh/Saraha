@@ -1,5 +1,5 @@
 import { compare, hash } from 'bcrypt';
-import { UserModel } from '../../database/models/User.model.js';
+import { UserModel } from '../../database/models/user.model.js';
 import {
   CLIENT_ID,
   PENDING_AUTH_SIGNATURE,
@@ -64,29 +64,26 @@ export const login = async ({ email, password }) => {
 
   if (!user) throw new HttpError(404, 'Account does not exist');
 
-  const tries = await RedisRepo.get(`login:user:${user._id}`);
+  const tries = await RedisRepo.get(`auth:login-counter:${user._id}`);
   if (tries && tries > 5)
     throw new HttpError(401, 'Account temporarily banned, try again later');
 
   const matchedPassword = await compare(password, user.hashed_password);
   if (!matchedPassword) {
-    const loginCounter = await RedisRepo.incr(`login:user:${user._id}`);
-    if (loginCounter === 1) RedisRepo.expire(`login:user:${user._id}`, 1800);
+    const loginCounter = await RedisRepo.incr(`auth:login-counter:${user._id}`);
+    if (loginCounter === 1)
+      RedisRepo.expire(`auth:login-counter:${user._id}`, 1800);
     throw new HttpError(401, 'Invalid credentials');
   }
 
   if (user.has2FA) {
-    const pendingAuthToken = jwt.sign(
-      { sub: user._id },
-      PENDING_AUTH_SIGNATURE,
-      {
-        audience: [TokenType.PendingAuth],
-        expiresIn: '10m',
-      },
-    );
+    const token = jwt.sign({ sub: user._id }, PENDING_AUTH_SIGNATURE, {
+      audience: [TokenType.PendingAuth],
+      expiresIn: '10m',
+    });
 
     await sendOTPEmail(
-      `otp:login:${user._id}`,
+      `auth:login-2fa:${user._id}`,
       user,
       'Your SarahaClone login confirmation code',
       'confirm your login attempt',
@@ -94,35 +91,33 @@ export const login = async ({ email, password }) => {
 
     return {
       requires2FA: true,
-      pendingAuthToken,
+      token,
     };
   } else return generateTokens(user._id, user.roleValue);
 };
 
-export const confirmLogin = async ({ code, pendingAuthToken }) => {
-  const { sub = undefined } = jwt.verify(
-    pendingAuthToken,
-    PENDING_AUTH_SIGNATURE,
-  );
+export const confirmLogin = async ({ code, token }) => {
+  const { sub = undefined } = jwt.verify(token, PENDING_AUTH_SIGNATURE);
 
   const [user, otp] = await Promise.all([
     DatabaseRepo.findOne({
       Model: UserModel,
       filters: { _id: sub },
     }),
-    RedisRepo.get(`otp:login:${sub}`),
+    RedisRepo.get(`auth:login-2fa:${sub}`),
   ]);
 
   if (!user) throw new HttpError(404, 'Account does not exist');
   if (!otp) throw new HttpError(404, 'OTP Expired, please login again');
 
-  const tries = await RedisRepo.get(`login:user:${user._id}`);
+  const tries = await RedisRepo.get(`auth:login-counter:${user._id}`);
   if (tries && tries > 5)
     throw new HttpError(401, 'Account temporarily banned, try again later');
 
   if (otp !== code) {
-    const loginCounter = await RedisRepo.incr(`login:user:${user._id}`);
-    if (loginCounter === 1) RedisRepo.expire(`login:user:${user._id}`, 1800);
+    const loginCounter = await RedisRepo.incr(`auth:login-counter:${user._id}`);
+    if (loginCounter === 1)
+      RedisRepo.expire(`auth:login-counter:${user._id}`, 1800);
     throw new HttpError(401, 'Invalid credentials');
   }
 

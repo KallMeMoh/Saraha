@@ -1,11 +1,13 @@
 import { HttpError } from '../../common/errors/HttpError.js';
 import { decrypt } from '../../common/utils/security/decrypt.js';
 import DatabaseRepo from '../../database/mongoose.repository.js';
-import { UserModel } from '../../database/models/User.model.js';
+import { UserModel } from '../../database/models/user.model.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { ROOT_DIR } from '../../config/index.js';
+import { sendOTPEmail } from '../../common/utils/email/send-otp-email.js';
+import RedisRepo from '../../database/redis.repository.js';
 
 export const getUserProfile = async (userId) => {
   const user = await DatabaseRepo.findOne({
@@ -40,36 +42,7 @@ export const getUserProfile = async (userId) => {
   };
 };
 
-export const resendOTP = async (userId) => {
-  const [user, otp] = await Promise.all([
-    DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
-    RedisRepo.exists(`otp:user:${userId}`),
-  ]);
-
-  if (!user) throw new HttpError(404, 'Account does not exist');
-  if (user.verified) throw new HttpError(409, 'Account already verified');
-  if (otp) return;
-
-  const code = randomInt(100_000, 999_999).toString();
-
-  await RedisRepo.set(`otp:signup:${user._id}`, `${code}`, {
-    expiration: {
-      type: 'EX',
-      time: 300,
-    },
-  });
-
-  sendOTPEmail(
-    'Verify your SarahaClone account',
-    user,
-    code,
-    'complete your registration',
-  );
-
-  await sendOTPEmail(user);
-};
-
-export const enable2FA = async (userId) => {
+export const request2FAActivation = async (userId) => {
   const user = await DatabaseRepo.findOne({
     Model: UserModel,
     filters: { _id: userId },
@@ -78,30 +51,64 @@ export const enable2FA = async (userId) => {
   if (!user) throw new HttpError(404, 'Account does not exist');
   if (user.verified) throw new HttpError(409, 'Account already verified');
 
-  const codeExists = await RedisRepo.exists(`otp:2fa:${user._id}`);
+  const codeExists = await RedisRepo.exists(
+    `user:2fa-activation-code:${user._id}`,
+  );
   if (codeExists) return;
 
   await sendOTPEmail(
-    `otp:2fa:${user._id}`,
+    `user:2fa-activation-code:${user._id}`,
     user,
     'Your SarahaClone 2FA setup code',
     'enable two-factor authentication',
   );
 };
 
-export const verifyOTP = async (userId, code) => {
+export const activate2FA = async (userId, code) => {
   const [user, otp] = await Promise.all([
     DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
-    RedisRepo.get(`otp:user:${userId}`),
+    RedisRepo.get(`user:2fa-activation-code:${userId}`),
   ]);
 
+  if (!user) throw new HttpError(404, 'Account does not exist');
   if (user.verified) throw new HttpError(409, 'Account already verified');
-  if (!user || !otp || otp !== code)
+  if (otp !== code)
     throw new HttpError(401, 'Invalid Code, please try again later');
-  // todo: implement temporal block after 5 tries
 
-  await otp.deleteOne();
+  await RedisRepo.del(`user:2fa-activation-code:${userId}`);
+  user.has2FA = true;
+  await user.save();
+};
 
+export const requestVerificationCode = async (userId) => {
+  const [user, otpExists] = await Promise.all([
+    DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
+    RedisRepo.exists(`user:verification-code:${userId}`),
+  ]);
+  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (user.verified) throw new HttpError(409, 'Account already verified');
+  if (otpExists) return;
+
+  await sendOTPEmail(
+    `user:verification-code:${userId}`,
+    user,
+    'Your Account Verification Code',
+    'verify your email address',
+  );
+};
+
+export const verifyUserAccount = async (userId, code) => {
+  const [user, otp] = await Promise.all([
+    DatabaseRepo.findOne({ Model: UserModel, filters: { _id: userId } }),
+    RedisRepo.get(`user:verification-code:${userId}`),
+  ]);
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+  if (user.verified) throw new HttpError(409, 'Account already verified');
+  if (otp !== code)
+    throw new HttpError(401, 'Invalid Code, please try again later');
+
+  await RedisRepo.del(`user:user-verification:${userId}`);
   user.verified = true;
   await user.save();
 };

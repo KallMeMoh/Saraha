@@ -1,7 +1,7 @@
 import { HttpError } from '../../common/errors/HttpError.js';
 import DatabaseRepo from '../../database/mongoose.repository.js';
-import { MessageModel } from '../../database/models/Message.model.js';
-import { UserModel } from '../../database/models/User.model.js';
+import { MessageModel } from '../../database/models/message.model.js';
+import { UserModel } from '../../database/models/user.model.js';
 
 export const getUserMessages = async (userId) => {
   const exist = await DatabaseRepo.exists({

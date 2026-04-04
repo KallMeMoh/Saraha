@@ -6,7 +6,7 @@ import RedisRepo from '../database/redis.repository.js';
 
 export const authenticate =
   (strict = true, tokenType = TokenType.Access) =>
-  (req, res, next) => {
+  async (req, res, next) => {
     const fail = (message) => {
       if (!strict) next();
       else throw new HttpError(401, message);
@@ -32,7 +32,8 @@ export const authenticate =
 
       const { sub, jti } = jwt.verify(token, signature);
 
-      if (RedisRepo.get(`jwt:blacklist:${jti}`)) return fail('Token revoked');
+      if (await RedisRepo.get(`jwt:blacklist:${jti}`))
+        return fail('Token revoked');
 
       req.userId = sub;
       req.tokenId = jti;
