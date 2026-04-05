@@ -9,6 +9,7 @@ import { avatarSchema } from '../../common/validation/avatar.schema.js';
 import { authenticate } from '../../middlewares/authentication.js';
 import { coverSchema } from '../../common/validation/cover.schema.js';
 import { OTPSchema } from '../../common/validation/otp.schema.js';
+import { changePasswordSchema } from '../../common/validation/change-passowrd.shcmea.js';
 
 export const userRouter = Router();
 
@@ -46,10 +47,11 @@ userRouter.post('/verify', validate(OTPSchema), async (req, res) => {
 });
 
 userRouter.post(
-  '/password/change',
-  // validate(Schema),
+  '/password/update',
+  validate(changePasswordSchema),
   async (req, res) => {
-    // changing authed user password
+    await UserService.updateUserPassword(req.userId, req.tokenId, req.body);
+    return res.status(200).json({ message: 'Password updated successfully' });
   },
 );
 

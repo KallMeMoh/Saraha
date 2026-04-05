@@ -18,6 +18,6 @@ export const resetPasswordSchema = Joi.object({
   })
     .required()
     .messages({
-      'any.required': 'Missing ',
+      'any.required': 'Missing token param',
     }),
 });

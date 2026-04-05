@@ -5,9 +5,10 @@ import { UserModel } from '../../database/models/user.model.js';
 import { RoleEnum } from '../../common/enums/user.enum.js';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
-import { ROOT_DIR } from '../../config/index.js';
+import { ROOT_DIR, SALT_ROUNDS } from '../../config/index.js';
 import { sendOTPEmail } from '../../common/utils/email/send-otp-email.js';
 import RedisRepo from '../../database/redis.repository.js';
+import { compare, hash } from 'bcrypt';
 
 export const getUserProfile = async (userId) => {
   const user = await DatabaseRepo.findOne({
@@ -111,6 +112,31 @@ export const verifyUserAccount = async (userId, code) => {
   await RedisRepo.del(`user:user-verification:${userId}`);
   user.verified = true;
   await user.save();
+};
+
+export const updateUserPassword = async (
+  userId,
+  jti,
+  { old_password, new_password },
+) => {
+  const user = await DatabaseRepo.findOne({
+    Model: UserModel,
+    filters: { _id: userId },
+  });
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+
+  const passwordsMatch = await compare(old_password, user.hashed_password);
+
+  if (!passwordsMatch) throw new HttpError(401, 'Invalid credentials');
+
+  user.hashed_password = await hash(new_password, SALT_ROUNDS);
+  const ttl = 365 * 24 * 60 * 60;
+
+  await Promise.all([
+    user.save(),
+    RedisRepo.set(`jwt:blacklist:${jti}`, '1', 'EX', ttl),
+  ]);
 };
 
 export const updateAvatar = async (userId, path) => {
