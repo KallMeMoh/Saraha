@@ -1,10 +1,11 @@
 export const validate = (schema) => async (req, res, next) => {
+  console.log(req.files);
   const { body, params } = await schema.validateAsync(
     {
       body: req.body,
       query: req.query,
       params: req.params,
-      files: req.files,
+      ...(req.files ? { files: req.files } : {}),
     },
     { abortEarly: false },
   );
