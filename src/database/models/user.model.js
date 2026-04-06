@@ -37,6 +37,11 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    verificationExpiry: {
+      type: Date,
+      default: () => new Date(),
+      index: { expireAfterSeconds: 86400 },
+    },
     avatar: {
       type: String,
       default: null,

@@ -88,7 +88,11 @@ export const requestVerificationCode = async (userId) => {
   ]);
   if (!user) throw new HttpError(404, 'Account does not exist');
   if (user.verified) throw new HttpError(409, 'Account already verified');
-  if (otpExists) return;
+  if (otpExists)
+    throw new HttpError(
+      429,
+      'A code was already sent, please wait before requesting a new one',
+    );
 
   await sendOTPEmail(
     `user:verification-code:${userId}`,
@@ -106,12 +110,19 @@ export const verifyUserAccount = async (userId, code) => {
 
   if (!user) throw new HttpError(404, 'Account does not exist');
   if (user.verified) throw new HttpError(409, 'Account already verified');
-  if (otp !== code)
-    throw new HttpError(401, 'Invalid Code, please try again later');
+  if (!otp) throw new HttpError(401, 'Code expired, please request a new one');
+  if (otp !== code) throw new HttpError(401, 'Invalid code, please try again');
 
-  await RedisRepo.del(`user:user-verification:${userId}`);
-  user.verified = true;
-  await user.save();
+  await RedisRepo.del(`user:verification-code:${userId}`);
+
+  await DatabaseRepo.updateOne({
+    Model: UserModel,
+    filters: { _id: user._id },
+    updates: {
+      $set: { verified: true },
+      $unset: { verificationExpiry: 1 },
+    },
+  });
 };
 
 export const updateUserPassword = async (
