@@ -99,10 +99,10 @@ export const login = async ({ email, password }) => {
   } else return generateTokens(user._id, user.roleValue);
 };
 
-export const confirmLogin = async ({ code, token }) => {
+export const confirmLogin = async ({ otp, token }) => {
   const { sub = undefined } = jwt.verify(token, PENDING_AUTH_SIGNATURE);
 
-  const [user, otp] = await Promise.all([
+  const [user, code] = await Promise.all([
     DatabaseRepo.findOne({
       Model: UserModel,
       filters: { _id: sub },
@@ -111,7 +111,7 @@ export const confirmLogin = async ({ code, token }) => {
   ]);
 
   if (!user) throw new HttpError(404, 'Account does not exist');
-  if (!otp) throw new HttpError(404, 'OTP Expired, please login again');
+  if (!code) throw new HttpError(404, 'OTP Expired, please login again');
 
   const tries = await RedisRepo.get(`auth:login-counter:${user._id}`);
   if (tries && tries > 5)

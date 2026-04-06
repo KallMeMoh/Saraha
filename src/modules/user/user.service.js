@@ -55,7 +55,11 @@ export const request2FAActivation = async (userId) => {
   const codeExists = await RedisRepo.exists(
     `user:2fa-activation-code:${user._id}`,
   );
-  if (codeExists) return;
+  if (codeExists)
+    throw new HttpError(
+      429,
+      'A code was already sent, please wait before requesting a new one',
+    );
 
   await sendOTPEmail(
     `user:2fa-activation-code:${user._id}`,
@@ -73,6 +77,7 @@ export const activate2FA = async (userId, code) => {
 
   if (!user) throw new HttpError(404, 'Account does not exist');
   if (user.verified) throw new HttpError(409, 'Account already verified');
+  if (!otp) throw new HttpError(401, 'Code expired, please request a new one');
   if (otp !== code)
     throw new HttpError(401, 'Invalid Code, please try again later');
 

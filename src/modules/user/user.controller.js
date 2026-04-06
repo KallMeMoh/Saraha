@@ -27,7 +27,7 @@ userRouter.post('/2fa/enable', async (req, res) => {
 });
 
 userRouter.post('/2fa/verify', validate(OTPSchema), async (req, res) => {
-  await UserService.activate2FA(req.userId, req.body.code);
+  await UserService.activate2FA(req.userId, req.body.otp);
   return res
     .status(200)
     .json({ message: 'Account has been verified successfully' });
@@ -40,7 +40,7 @@ userRouter.post('/verification/resend', async (req, res) => {
 });
 
 userRouter.post('/verify', validate(OTPSchema), async (req, res) => {
-  await UserService.verifyUserAccount(req.userId, req.body.code);
+  await UserService.verifyUserAccount(req.userId, req.body.otp);
   return res
     .status(200)
     .json({ message: 'Account has been verified successfully' });

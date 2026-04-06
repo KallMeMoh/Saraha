@@ -33,7 +33,7 @@ export const authenticate =
       const { sub, jti } = jwt.verify(token, signature);
 
       if (await RedisRepo.get(`jwt:blacklist:${jti}`))
-        return fail('Token revoked');
+        return fail('Invalid or malformed token');
 
       req.userId = sub;
       req.tokenId = jti;

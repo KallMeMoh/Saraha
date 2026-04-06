@@ -2,7 +2,7 @@ import Joi from 'joi';
 import { otp, ln, token } from './fields.js';
 
 export const confirmationSchema = Joi.object({
-  body: Joi.object({ code: otp, token })
+  body: Joi.object({ otp, token })
     .required()
     .messages({ 'any.required': 'Missing request body' }),
 
