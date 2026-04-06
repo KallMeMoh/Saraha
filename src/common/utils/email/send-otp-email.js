@@ -1,18 +1,7 @@
 import { randomInt } from 'node:crypto';
-import { createTransport } from 'nodemailer';
-import { SMTP_PASS, SMTP_USER } from '../../../config/index.js';
 import { otpTemplate } from './otp.template.js';
 import RedisRepo from '../../../database/redis.repository.js';
-
-const transporter = createTransport({
-  host: 'smtp.resend.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS,
-  },
-});
+import { transporter } from './index.js';
 
 export const sendOTPEmail = async (key, user, subject, reason) => {
   const code = randomInt(100_000, 999_999).toString();

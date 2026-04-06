@@ -43,3 +43,5 @@ export const CLIENT_ID = getRequiredEnvVar('CLIENT_ID');
 // export const CLIENT_SECRET = getRequiredEnvVar('CLIENT_SECRET');
 
 export const REDIS_URI = getRequiredEnvVar('REDIS_URI');
+
+export const FRONTEND_URL = getRequiredEnvVar('FRONTEND_URL');

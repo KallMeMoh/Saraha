@@ -1,7 +1,11 @@
 import { compare, hash } from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { randomBytes } from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { UserModel } from '../../database/models/user.model.js';
 import {
   CLIENT_ID,
+  FRONTEND_URL,
   PENDING_AUTH_SIGNATURE,
   SALT_ROUNDS,
 } from '../../config/index.js';
@@ -10,11 +14,10 @@ import { encrypt } from '../../common/utils/security/encrypt.js';
 import { ProviderEnum } from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/send-otp-email.js';
 import { HttpError } from '../../common/errors/HttpError.js';
-import { OAuth2Client } from 'google-auth-library';
 import { generateTokens } from '../../common/utils/security/token.js';
 import RedisRepo from '../../database/redis.repository.js';
 import { TokenType } from '../../common/enums/token.enum.js';
-import jwt from 'jsonwebtoken';
+import { sendPasswordResetEmail } from '../../common/utils/email/send-password-reset-email.js';
 
 export const signup = async ({
   username,
@@ -190,9 +193,34 @@ export const rotateToken = async (userId, jti) => {
   return newAccessToken;
 };
 
-export const resetPassword = async (userId) => {};
+export const resetPassword = async ({ email }) => {
+  const user = await DatabaseRepo.findOne({
+    Model: UserModel,
+    filters: { email },
+  });
 
-export const verifyResetPassword = async (userId) => {};
+  if (!user) return;
+
+  const token = randomBytes(32).toString('hex');
+  await RedisRepo.set(`auth:password-reset:${token}`, `${user._id}`, 'EX', 900);
+  await sendPasswordResetEmail(
+    user.email,
+    `${FRONTEND_URL}/reset-password?token=${token}`,
+  );
+};
+
+export const verifyResetPassword = async (token, { new_password }) => {
+  const userId = await RedisRepo.get(`auth:password-reset:${token}`);
+  const user = DatabaseRepo.findOne({
+    Model: UserModel,
+    filters: { _id: userId },
+  });
+
+  if (!user) throw new HttpError(404, 'Account does not exist');
+
+  user.hashed_password = await hash(new_password, SALT_ROUNDS);
+  await user.save();
+};
 
 export const blacklistToken = async (jti) => {
   const ttl = 365 * 24 * 60 * 60;

@@ -1,5 +1,5 @@
 import express from 'express';
-import { PORT, ROOT_DIR } from './config/index.js';
+import { FRONTEND_URL, PORT, ROOT_DIR } from './config/index.js';
 import { connectDB } from './database/mongo.connection.js';
 import { authRouter } from './modules/auth/auth.controller.js';
 import { userRouter } from './modules/user/user.controller.js';
@@ -26,7 +26,7 @@ export default async function bootstrap() {
   app.use(express.json());
   app.use(
     cors({
-      origin: ['http://localhost:3001'],
+      origin: [FRONTEND_URL],
       credentials: true,
     }),
   );

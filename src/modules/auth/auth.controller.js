@@ -7,6 +7,7 @@ import { loginSchema } from '../../common/validation/login.schema.js';
 import { signupSchema } from '../../common/validation/signup.schema.js';
 import { confirmationSchema } from '../../common/validation/confirmation.schema.js';
 import { resetPasswordSchema } from '../../common/validation/reset-passowrd.shcmea.js';
+import { forgetPasswordSchema } from '../../common/validation/forget-passowrd.shcmea.js';
 
 export const authRouter = Router();
 
@@ -59,16 +60,21 @@ authRouter.post(
   },
 );
 
-authRouter.post('/password/forget', async () => {
-  await AuthService.resetPassword(userId);
-  return res.status(200).json({ message: 'Please check your inbox' });
-});
+authRouter.post(
+  '/password/forget',
+  validate(forgetPasswordSchema),
+  async (req, res) => {
+    await AuthService.resetPassword(req.body);
+    return res.status(200).json({ message: 'Please check your inbox' });
+  },
+);
 
 authRouter.post(
-  '/password/reset/:jwt',
+  '/password/reset/:token',
   validate(resetPasswordSchema),
   async (req, res) => {
-    await AuthService.verifyResetPassword(req.userId, req.params.jwt);
+    await AuthService.verifyResetPassword(req.params.token, req.body);
+    res.status(200).json({ message: 'Password reset successfully' });
   },
 );
 
