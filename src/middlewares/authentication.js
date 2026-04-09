@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { TokenType } from '../common/enums/token.enum.js';
 import { getSignature } from '../common/utils/security/signature.js';
-import { HttpError } from '../common/errors/HttpError.js';
+import { HttpError } from '../common/errors/http.error.js';
 import RedisRepo from '../database/redis.repository.js';
 
 export const authenticate =

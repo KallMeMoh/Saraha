@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { HttpError } from '../common/errors/HttpError.js';
+import { HttpError } from '../common/errors/http.error.js';
 import { MulterError } from 'multer';
 import jwt from 'jsonwebtoken';
 

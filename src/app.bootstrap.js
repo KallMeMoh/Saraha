@@ -6,7 +6,7 @@ import { userRouter } from './modules/user/user.controller.js';
 import { authenticate } from './middlewares/authentication.js';
 import { messageRouter } from './modules/message/message.controller.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-import { HttpError } from './common/errors/HttpError.js';
+import { HttpError } from './common/errors/http.error.js';
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import cors from 'cors';

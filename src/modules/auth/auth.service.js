@@ -13,7 +13,7 @@ import DatabaseRepo from '../../database/mongoose.repository.js';
 import { encrypt } from '../../common/utils/security/encrypt.js';
 import { ProviderEnum } from '../../common/enums/user.enum.js';
 import { sendOTPEmail } from '../../common/utils/email/send-otp-email.js';
-import { HttpError } from '../../common/errors/HttpError.js';
+import { HttpError } from '../../common/errors/http.error.js';
 import { generateTokens } from '../../common/utils/security/token.js';
 import RedisRepo from '../../database/redis.repository.js';
 import { TokenType } from '../../common/enums/token.enum.js';

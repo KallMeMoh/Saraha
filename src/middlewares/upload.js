@@ -1,7 +1,7 @@
 import multer from 'multer';
 import { randomUUID } from 'crypto';
 import { join } from 'path';
-import { HttpError } from '../common/errors/HttpError.js';
+import { HttpError } from '../common/errors/http.error.js';
 import { ROOT_DIR } from '../config/index.js';
 
 function getFileDestination(path) {
