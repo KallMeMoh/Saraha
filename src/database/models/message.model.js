@@ -4,7 +4,9 @@ const messageSchema = new Schema(
   {
     content: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.attachments.length;
+      },
     },
     attachments: {
       type: [String],
