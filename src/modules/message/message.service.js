@@ -13,7 +13,7 @@ export const getUserMessages = async (userId) => {
   const messages =
     (await DatabaseRepo.find({
       Model: MessageModel,
-      filters: { senderId: exist._id },
+      filters: { receiverId: exist._id },
     })) || [];
 
   return messages;
