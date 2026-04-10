@@ -17,7 +17,7 @@ import RedisStore from 'rate-limit-redis';
 
 export default async function bootstrap() {
   const app = express();
-  // app.set('trust proxy', 1); // commented because I am on ec2 directly with no proxy infront
+  app.set('trust proxy', 1);
   // note to self: 1 !== true, true tursts the entire chain,
   // while 1 trusts the first proxy hop, important for
   // preventing ip spoofing
