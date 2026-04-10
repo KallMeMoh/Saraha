@@ -25,9 +25,9 @@ export default async function bootstrap() {
   await Promise.all([
     connectDB(),
     connectRedis(),
-    mkdir(join(ROOT_DIR, '../uploads/covers'), { recursive: true }),
-    mkdir(join(ROOT_DIR, '../uploads/avatars'), { recursive: true }),
-    mkdir(join(ROOT_DIR, '../uploads/attachments'), { recursive: true }),
+    mkdir(join(ROOT_DIR, 'uploads/covers'), { recursive: true }),
+    mkdir(join(ROOT_DIR, 'uploads/avatars'), { recursive: true }),
+    mkdir(join(ROOT_DIR, 'uploads/attachments'), { recursive: true }),
   ]);
 
   app.use(express.json());
