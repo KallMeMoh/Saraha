@@ -10,10 +10,17 @@ import { HttpError } from './common/errors/http.error.js';
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import cors from 'cors';
-import { connectRedis } from './database/redis.connection.js';
+import { client, connectRedis } from './database/redis.connection.js';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import RedisStore from 'rate-limit-redis';
 
 export default async function bootstrap() {
   const app = express();
+  // app.set('trust proxy', 1); // commented because I am on ec2 directly with no proxy infront
+  // note to self: 1 !== true, true tursts the entire chain,
+  // while 1 trusts the first proxy hop, important for
+  // preventing ip spoofing
 
   await Promise.all([
     connectDB(),
@@ -28,6 +35,19 @@ export default async function bootstrap() {
     cors({
       origin: [FRONTEND_URL],
       credentials: true,
+    }),
+  );
+  app.use(helmet());
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60_000,
+      limit: 100,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      store: new RedisStore({
+        sendCommand: (...args) => client.sendCommand(args),
+      }),
+      message: { error: 'Too many requests, rate limit exceeded' },
     }),
   );
 
